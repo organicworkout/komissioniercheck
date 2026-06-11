@@ -480,7 +480,7 @@ async function callClaude(messages, system, maxTokens) {
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
-    body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: maxTokens, system, messages })
+    body: JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: maxTokens, system, messages })
   });
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));

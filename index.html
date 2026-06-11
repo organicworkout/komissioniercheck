@@ -284,12 +284,16 @@ async function loadPDF() {
     const pdfFile = (listData.entries || []).find(e => e.name.toLowerCase().endsWith('.pdf'));
     if (!pdfFile) throw new Error('Keine PDF im Ordner gefunden');
 
-    const dlResp = await fetch('https://api.dropboxapi.com/2/files/download', {
+    const dlResp = await fetch('https://content.dropboxapi.com/2/files/download', {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + DROPBOX_TOKEN, 'Dropbox-API-Arg': JSON.stringify({ path: pdfFile.path_lower }) }
+      headers: {
+        'Authorization': 'Bearer ' + DROPBOX_TOKEN,
+        'Dropbox-API-Arg': JSON.stringify({ path: pdfFile.path_lower })
+      }
     });
+    if (!dlResp.ok) throw new Error('Download fehlgeschlagen: ' + dlResp.status);
     const arrayBuffer = await dlResp.arrayBuffer();
-    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     totalPages = pdfDoc.numPages;
     document.getElementById('pdfCardSub').textContent = totalPages + ' Seite' + (totalPages > 1 ? 'n' : '');
 

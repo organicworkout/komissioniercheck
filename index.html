@@ -342,31 +342,17 @@ async function showPageCanvas(pageNum) {
 
 // ── Liefernummern extrahieren (im Hintergrund) ──────────
 async function extractLieferungen() {
-  // Jede Seite einzeln auslesen – zuverlässiger als alle auf einmal
-  const pageNrs = {}; // pageNum -> lieferNr
+  // Liefernummern direkt per PDF.js Textextraktion – kein API Call nötig!
+  const pageNrs = {};
 
   for (let i = 1; i <= totalPages; i++) {
     try {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': getApiKey(),
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-opus-4-5', max_tokens: 100,
-          system: 'Lies die Liefernummer aus dem Kommissionierschein. Antworte NUR mit der Zahl/dem Code, nichts weiter. Beispiel: 71167',
-          messages: [{ role: 'user', content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[i] } },
-            { type: 'text', text: 'Was ist die Liefernummer auf diesem Dokument? Antworte nur mit der Nummer, z.B. 71167. Falls keine Liefernummer erkennbar ist, antworte mit "?".' }
-          ]}]
-        })
-      });
-      const data = await resp.json();
-      const nr = (data.content[0].text || '').trim().replace(/[^a-zA-Z0-9\-\/]/g, '');
-      pageNrs[i] = nr && nr !== '?' ? nr : null;
+      const page = await pdfDoc.getPage(i);
+      const textContent = await page.getTextContent();
+      const text = textContent.items.map(item => item.str).join(' ');
+      // Suche nach "Liefernummer:" gefolgt von einer Zahl
+      const match = text.match(/Liefernummer[:\s]+([\d]+)/i);
+      pageNrs[i] = match ? match[1].trim() : null;
     } catch(e) {
       pageNrs[i] = null;
     }

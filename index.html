@@ -328,7 +328,12 @@ async function extractLieferungen() {
     try {
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': getApiKey(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-allow-browser': 'true' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': getApiKey(),
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-allow-browser': 'true'
+        },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514', max_tokens: 100,
           system: 'Lies die Liefernummer aus dem Kommissionierschein. Antworte NUR mit der Zahl/dem Code, nichts weiter. Beispiel: 71167',
@@ -457,9 +462,18 @@ function hideOverlay() { document.getElementById('overlay').style.display = 'non
 async function callClaude(messages, system, maxTokens) {
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': getApiKey(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-allow-browser': 'true' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getApiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-allow-browser': 'true'
+    },
     body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: maxTokens, system, messages })
   });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${resp.status}`);
+  }
   const data = await resp.json();
   if (data.error) throw new Error(data.error.message);
   return data.content[0].text;

@@ -252,6 +252,7 @@ let currentLieferIdx = 0;
 let currentSeiteIdx = 0;
 let produktFotos = [];
 let allResults = [];
+let checkedLieferungen = new Set(); // Indizes bereits abgeschlossener Lieferungen
 let extractionDone = false;
 
 // ── DB ──────────────────────────────────────────────────
@@ -377,11 +378,7 @@ async function extractLieferungen() {
   });
 
   // Dropdown befüllen
-  const sel = document.getElementById('lieferungSelect');
-  sel.innerHTML = lieferungen.map((l, i) =>
-    `<option value="${i}">${l.lieferNr}${l.info ? ' – ' + l.info : ''}</option>`
-  ).join('');
-  sel.value = '0';
+  renderDropdown(0);
 
   document.getElementById('selectLoading').style.display = 'none';
   sel.style.display = 'block';
@@ -390,13 +387,30 @@ async function extractLieferungen() {
   // Seite 1 / Lieferung 1 ist schon aktiv
   currentLieferIdx = 0;
   currentSeiteIdx = 0;
+  checkedLieferungen = new Set();
   updatePill();
   checkReady();
+}
+
+function renderDropdown(selectedIdx) {
+  const sel = document.getElementById('lieferungSelect');
+  sel.innerHTML = lieferungen.map((l, i) => {
+    const checked = checkedLieferungen.has(i);
+    const label = (checked ? '✅ ' : '') + l.lieferNr + (l.info ? ' – ' + l.info : '');
+    return `<option value="${i}"${checked ? ' style="color:#3a7d3a;"' : ''}>${label}</option>`;
+  }).join('');
+  sel.value = String(selectedIdx);
 }
 
 function onDropdownChange() {
   const idx = parseInt(document.getElementById('lieferungSelect').value);
   if (idx === currentLieferIdx) return;
+  if (allResults.length > 0) {
+    if (!confirm('Lieferung wechseln? Die bisherigen Ergebnisse gehen verloren.')) {
+      document.getElementById('lieferungSelect').value = currentLieferIdx;
+      return;
+    }
+  }
   currentLieferIdx = idx;
   currentSeiteIdx = 0;
   produktFotos = [];
@@ -669,13 +683,32 @@ function showFinalResult() {
 
 // ── Reset ───────────────────────────────────────────────
 function resetAll() {
-  currentLieferIdx=0; currentSeiteIdx=0; allResults=[]; produktFotos=[]; pageImages={};
+  // Aktuelle Lieferung als gecheckt markieren
+  checkedLieferungen.add(currentLieferIdx);
+
+  // Nächste unerledigte Lieferung finden (ab currentLieferIdx+1, dann von vorne)
+  let nextIdx = -1;
+  for (let i = currentLieferIdx + 1; i < lieferungen.length; i++) {
+    if (!checkedLieferungen.has(i)) { nextIdx = i; break; }
+  }
+  if (nextIdx === -1) {
+    for (let i = 0; i < currentLieferIdx; i++) {
+      if (!checkedLieferungen.has(i)) { nextIdx = i; break; }
+    }
+  }
+  if (nextIdx === -1) nextIdx = currentLieferIdx; // alle gecheckt
+
+  currentLieferIdx = nextIdx;
+  currentSeiteIdx = 0; allResults = []; produktFotos = []; pageImages = {};
+
+  renderDropdown(nextIdx);
   renderFotoGrid();
   document.getElementById('screenFinal').style.display='none';
   document.getElementById('screenResult').style.display='none';
   document.getElementById('screenCheck').style.display='block';
   window.scrollTo(0,0);
-  loadPDF();
+  const seite = lieferungen[currentLieferIdx]?.seiten[0];
+  if (seite) { showPageCanvas(seite); updatePill(); checkReady(); }
 }
 
 // ── Helpers ─────────────────────────────────────────────

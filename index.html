@@ -382,8 +382,13 @@ async function extractLieferungen() {
 
   lieferungen = Object.entries(groups).map(([lieferNr, seiten]) => ({ lieferNr, seiten, info: '' }));
 
-  // Sortieren nach erster Seite
-  lieferungen.sort((a, b) => a.seiten[0] - b.seiten[0]);
+  // Sortieren nach Liefernummer aufsteigend
+  lieferungen.sort((a, b) => {
+    const nA = parseInt(a.lieferNr.replace(/\D/g, '')) || 0;
+    const nB = parseInt(b.lieferNr.replace(/\D/g, '')) || 0;
+    if (nA && nB) return nA - nB;
+    return a.lieferNr.localeCompare(b.lieferNr, 'de', { numeric: true });
+  });
 
   // Dropdown befüllen
   const sel = document.getElementById('lieferungSelect');

@@ -336,7 +336,7 @@ async function extractLieferungen() {
           'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 100,
+          model: 'claude-opus-4-5', max_tokens: 100,
           system: 'Lies die Liefernummer aus dem Kommissionierschein. Antworte NUR mit der Zahl/dem Code, nichts weiter. Beispiel: 71167',
           messages: [{ role: 'user', content: [
             { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[i] } },
@@ -469,7 +469,7 @@ async function callClaude(messages, system, maxTokens) {
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
-    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: maxTokens, system, messages })
+    body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: maxTokens, system, messages })
   });
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));

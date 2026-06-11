@@ -232,7 +232,8 @@ input[type=file] { display: none; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-const DROPBOX_URL = 'https://dl.dropboxusercontent.com/scl/fi/wvtugp7158vrz7vrpcs57/Kommissionierscheine.pdf?rlkey=feob8tyk6j910rkt7md33ut2f&raw=1';
+const DROPBOX_TOKEN = 'sl.u.AGhvxLWLoGi9n36xboC8ltK0DHUxvGchJzmQvMC5zXT4xyhobp6geXnV2zYYx_yAea-d4FwcrpCVvIY90ydlMoOWVvd4J7C7B4mqzKWcg2PLaRhVAa6U0rcqQg3XKMvwdqC9Jb4yaHKPlarNR48MBNo7t6vVjrX8cDW5Z1fNbSsMFspsCapouvFrq-h_LbfdXUtbGvxfQal6EDRIM9bIvto-1-wKVaNfm02go1eVMHVs8h2_i7wg5kxIbkFG9cq3YFxGR2qj1XZjGhnqRhNyZFm6agV5ihLXWCJdj88eSPKQaPQTYdY3ejKw1VqfiEZB8vwDunFEzbQ6gG8SvlqFHNHHp_BU9hVo_gMdzZte1d_135jx1UEFI-i4fnlJb34auHBc_p8CfdD1-J5SRcwJGBIgAi3Lt5m7P3hgAayhGE4OcyiCGGyRl2BcCOkVwaeIXO8hhVRarbWj-pldX61ipCWzk5ULKeF-L1FvjLxvKsBJjA9q8YrvPbTBGC8jcBbNwfn892jahGbn-ZXuN2omht6svkZwRx3e-SXOWYpWzCPjnLzZBJZSmrFOrLdrzT4prtdm-y5Km57IMbSAZZ7MxZleSSOiIPIhasP56KtL9o_G2HbSTqfQiNNrQixv5-FSSJ5WMFnqcakW_nqKXayglGwHx50a8BpG6qhNXHK8aJqETj0IuU3rQfRuzBGrt-FKqAb42wGB6p_MRmlc97Oc6Uwm3lCuPy6hWej1KvtcsVgAItPhx2PveD85v7TgUv6wOuiL0iUl3aGWpmsVnd-PKNhHR4MNzHGbEdUihV3MPAgAQNsKcjN9SF-RkC7iWA3cjjOdVzD5T0BX52Rp3kcDF4LKg7BwS03oqmk9EGHbLd0QJiJGBDLQkMHOGUywyp1Lt92wmxR4SRAJRE7jG4WA010LTAowfhA-p5aKhlchIaTkawqm-dEt7wPNNiHfAN5msZexQPhc1rQsF75z3FNxzZ6CpYJHwPoa0R5_ZCx3FdKejBvz5G5QZqlmCrz0UIHBGEcGuYTSbKSS3nt50hqfEfN4_etwS27XrNtUM7-5qYTA62AvBCGwe1Glqkas22tW11Q4zK-jIXacPMYYegknYbqqTTYaawgaYBOaJV5VQx_oGdlpbAl0X37oFZQWfOh3lRDrDnADenk0YYf8rE3UnelaVSnmsMirk1-py2Dvi6nlckd4y2MliNvtdYwQl_4CGa4Wx42tUr-vDLmsnzTRyf1eLxxnUOg7ui2HgKWbjMeuIOR9SOli4BJSn5D6-ojEJBVg4ZOofyPXjKD3IisEX3KJA0pkp7nNNUMZwRGok7I27Q';
+const DROPBOX_FOLDER = '/Briefkasten1';
 const DB_KEY = 'produkt_db_v2';
 const API_KEY_STORAGE = 'ow_claude_api_key';
 const MAX_FOTOS = 6;
@@ -273,7 +274,22 @@ async function loadPDF() {
   checkReady();
 
   try {
-    pdfDoc = await pdfjsLib.getDocument({ url: DROPBOX_URL, withCredentials: false }).promise;
+    // Dropbox API: erste PDF im Ordner finden und laden
+    const listResp = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + DROPBOX_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: DROPBOX_FOLDER, recursive: false })
+    });
+    const listData = await listResp.json();
+    const pdfFile = (listData.entries || []).find(e => e.name.toLowerCase().endsWith('.pdf'));
+    if (!pdfFile) throw new Error('Keine PDF im Ordner gefunden');
+
+    const dlResp = await fetch('https://api.dropboxapi.com/2/files/download', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + DROPBOX_TOKEN, 'Dropbox-API-Arg': JSON.stringify({ path: pdfFile.path_lower }) }
+    });
+    const arrayBuffer = await dlResp.arrayBuffer();
+    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     totalPages = pdfDoc.numPages;
     document.getElementById('pdfCardSub').textContent = totalPages + ' Seite' + (totalPages > 1 ? 'n' : '');
 

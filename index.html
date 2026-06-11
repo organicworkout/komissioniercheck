@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kommissionierung">
+<title>Kommissionier-Check</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #111; min-height: 100vh; }
+
+.header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 14px 16px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; }
+.header-left h1 { font-size: 17px; font-weight: 600; }
+.header-left p { font-size: 12px; color: #888; margin-top: 2px; }
+.page-pill { background: #f0f0f0; border-radius: 20px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+
+.progress-bar { height: 3px; background: #e5e5e5; }
+.progress-fill { height: 3px; background: #1d9e75; transition: width 0.4s; }
+
+.content { padding: 16px 16px 130px; }
+
+/* PDF Karte */
+.pdf-card { background: #fff; border-radius: 16px; overflow: hidden; margin-bottom: 16px; border: 1px solid #eee; }
+.pdf-card-header { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; }
+.pdf-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.pdf-card-title { font-size: 14px; font-weight: 600; }
+.pdf-card-sub { font-size: 12px; color: #888; }
+
+/* Dropdown */
+.lieferung-select { width: 100%; border: 1.5px solid #ddd; border-radius: 12px; padding: 11px 38px 11px 14px; font-size: 15px; font-weight: 500; background: #f5f5f5; color: #111; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
+.lieferung-select:disabled { opacity: 0.5; }
+.select-loading { display: flex; align-items: center; gap: 8px; padding: 11px 14px; background: #f5f5f5; border: 1.5px solid #ddd; border-radius: 12px; font-size: 14px; color: #888; }
+.mini-spinner { width: 16px; height: 16px; border: 2px solid #eee; border-top-color: #1d9e75; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+
+.pdf-page-container canvas { display: block; width: 100%; }
+.pdf-page-loading { padding: 28px; text-align: center; color: #999; font-size: 13px; }
+.pdf-page-loading-icon { font-size: 24px; margin-bottom: 6px; }
+.pdf-error { padding: 14px 16px; background: #fcebeb; font-size: 13px; color: #a32d2d; }
+
+/* Fotos */
+.foto-card { background: #fff; border-radius: 16px; overflow: hidden; margin-bottom: 12px; border: 1px solid #eee; }
+.foto-card-header { padding: 12px 16px 10px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+.foto-card-left { display: flex; align-items: center; gap: 10px; }
+.foto-card-icon { font-size: 20px; }
+.foto-card-title { font-size: 14px; font-weight: 600; }
+.foto-card-sub { font-size: 12px; color: #888; margin-top: 1px; }
+.foto-count-pill { background: #e6f4ef; color: #1d9e75; border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; }
+.foto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; }
+.foto-slot { border-radius: 12px; overflow: hidden; position: relative; aspect-ratio: 4/3; background: #fafafa; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.foto-slot.has-photo { border-style: solid; border-color: #1d9e75; }
+.foto-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.foto-slot-hint { text-align: center; color: #bbb; font-size: 12px; padding: 8px; }
+.foto-slot-hint-icon { font-size: 26px; margin-bottom: 4px; }
+.foto-slot-del { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; background: rgba(0,0,0,0.55); color: white; border: none; border-radius: 50%; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.foto-slot-label { position: absolute; bottom: 6px; left: 8px; font-size: 10px; font-weight: 700; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+.btn-add-foto { margin: 0 12px 12px; width: calc(100% - 24px); padding: 11px; background: #f5f5f5; border: 1.5px dashed #ccc; border-radius: 12px; font-size: 14px; color: #555; font-weight: 600; cursor: pointer; }
+.btn-add-foto:disabled { opacity: 0.4; cursor: not-allowed; }
+input[type=file] { display: none; }
+
+.db-warning { background: #faeeda; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #ba7517; margin-bottom: 14px; }
+
+/* Bottom */
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #e5e5e5; display: flex; gap: 8px; }
+.btn-primary { flex: 1; background: #111; color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+.btn-secondary { background: #f5f5f5; color: #111; border: 1.5px solid #ddd; border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-success { flex: 1; background: #1d9e75; color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; }
+
+/* Ergebnis */
+.result-banner { border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+.result-banner.ok { background: #e6f4ef; }
+.result-banner.err { background: #fcebeb; }
+.result-banner.warn { background: #faeeda; }
+.banner-icon { font-size: 26px; flex-shrink: 0; }
+.banner-text h2 { font-size: 15px; font-weight: 700; }
+.banner-text p { font-size: 12px; color: #555; margin-top: 2px; }
+.section-title { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 8px; }
+.item-row { background: #fff; border-radius: 12px; padding: 12px 14px; margin-bottom: 7px; display: flex; align-items: center; gap: 12px; border-left: 4px solid transparent; }
+.item-row.match { border-left-color: #1d9e75; }
+.item-row.mismatch { border-left-color: #e24b4a; }
+.item-row.missing { border-left-color: #ba7517; }
+.item-row.extra { border-left-color: #185fa5; }
+.item-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 9px; flex-shrink: 0; background: #eee; }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 13px; font-weight: 500; line-height: 1.3; }
+.item-sku { font-size: 11px; color: #999; font-family: monospace; margin-top: 2px; }
+.item-detail { font-size: 12px; margin-top: 3px; }
+.item-detail.ok { color: #1d9e75; }
+.item-detail.err { color: #e24b4a; }
+.item-detail.info { color: #185fa5; }
+.item-badge { font-size: 18px; flex-shrink: 0; }
+.total-card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+.total-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+.total-row:last-child { border-bottom: none; }
+.total-val.ok { color: #1d9e75; font-weight: 600; }
+.total-val.err { color: #e24b4a; font-weight: 600; }
+.raw-section { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+.raw-title { font-size: 13px; font-weight: 600; color: #555; cursor: pointer; display: flex; justify-content: space-between; }
+.raw-body { margin-top: 10px; display: none; }
+.raw-body.open { display: block; }
+
+.analyzing-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.93); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.analyzing-overlay h2 { font-size: 17px; font-weight: 700; }
+.analyzing-overlay p { font-size: 13px; color: #888; text-align: center; padding: 0 28px; }
+.spinner { width: 42px; height: 42px; border: 4px solid #eee; border-top-color: #1d9e75; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.step-dots { display: flex; gap: 8px; }
+.step-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.3s; }
+.step-dot.active { background: #1d9e75; }
+</style>
+</head>
+<body>
+
+<!-- Screen: API Key -->
+<div id="screenApiKey" style="display:none">
+  <div class="header">
+    <div class="header-left">
+      <h1>Kommissionier-Check</h1>
+      <p>Einrichtung</p>
+    </div>
+  </div>
+  <div class="content" style="padding-top:32px;">
+    <div style="background:#fff;border-radius:16px;padding:20px;border:1px solid #eee;margin-bottom:16px;">
+      <div style="font-size:28px;margin-bottom:12px;">&#128273;</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Claude API Key eingeben</div>
+      <div style="font-size:13px;color:#888;margin-bottom:16px;line-height:1.5;">Der Key wird einmalig eingegeben und in diesem Browser gespeichert. Er wird fuer die KI-Analyse benoetigt.</div>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." style="width:100%;border:1.5px solid #ddd;border-radius:12px;padding:12px 14px;font-size:14px;background:#f5f5f5;font-family:monospace;margin-bottom:12px;">
+      <div id="apiKeyError" style="color:#a32d2d;font-size:13px;margin-bottom:10px;display:none;">Ungültiger Key – bitte prüfen.</div>
+      <button onclick="saveKeyAndStart()" style="width:100%;background:#111;color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:600;cursor:pointer;">Speichern &amp; starten</button>
+    </div>
+    <div style="font-size:12px;color:#aaa;text-align:center;line-height:1.5;">Der Key verlässt dieses Gerät nicht.<br>Er wird nur direkt an die Anthropic API gesendet.</div>
+  </div>
+</div>
+
+<div id="screenCheck" style="display:none">
+  <div class="header">
+    <div class="header-left">
+      <h1>Kommissionier-Check</h1>
+      <p id="dbStatus">Lade…</p>
+    </div>
+    <div class="page-pill" id="pagePill">–</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+
+  <div class="content">
+    <div id="dbWarning" class="db-warning" style="display:none">⚠️ Keine Produktdatenbank – bitte zuerst Produkt-Datenbank App öffnen.</div>
+
+    <!-- PDF + Dropdown in einer Karte -->
+    <div class="pdf-card">
+      <div class="pdf-card-header">
+        <div class="pdf-card-top">
+          <span class="pdf-card-title">Kommissionierschein</span>
+          <span class="pdf-card-sub" id="pdfCardSub">Wird geladen…</span>
+        </div>
+        <!-- Dropdown: erst Spinner, dann Select -->
+        <div id="selectLoading" class="select-loading">
+          <div class="mini-spinner"></div>
+          Liefernummern werden erkannt…
+        </div>
+        <select class="lieferung-select" id="lieferungSelect" style="display:none" onchange="onDropdownChange()"></select>
+      </div>
+      <div class="pdf-page-container" id="pdfPageContainer">
+        <div class="pdf-page-loading"><div class="pdf-page-loading-icon">⏳</div>PDF wird aus Dropbox geladen…</div>
+      </div>
+    </div>
+
+    <!-- Fotos -->
+    <div class="foto-card">
+      <div class="foto-card-header">
+        <div class="foto-card-left">
+          <div class="foto-card-icon">📦</div>
+          <div>
+            <div class="foto-card-title">Produkte fotografieren</div>
+            <div class="foto-card-sub">Mehrere Fotos möglich bei großen Bestellungen</div>
+          </div>
+        </div>
+        <div class="foto-count-pill" id="fotoCountPill">0 Fotos</div>
+      </div>
+      <div class="foto-grid" id="fotoGrid"></div>
+      <input type="file" accept="image/*" capture="environment" id="fileInput" onchange="handleFotoInput(this)">
+      <button class="btn-add-foto" id="btnAddFoto" onclick="triggerFoto()">+ Foto hinzufügen</button>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn-secondary" onclick="reloadAll()">🔄</button>
+    <button class="btn-primary" id="btnCheck" disabled onclick="runCheck()">Prüfen</button>
+  </div>
+</div>
+
+<!-- Screen: Ergebnis -->
+<div id="screenResult" style="display:none">
+  <div class="header">
+    <div class="header-left">
+      <h1>Ergebnis</h1>
+      <p id="resultSub"></p>
+    </div>
+    <div class="page-pill" id="resultPill">–</div>
+  </div>
+  <div class="content" id="resultContent"></div>
+  <div class="bottom-bar" id="resultBottomBar"></div>
+</div>
+
+<!-- Screen: Gesamtergebnis -->
+<div id="screenFinal" style="display:none">
+  <div class="header">
+    <div class="header-left">
+      <h1>Gesamtergebnis</h1>
+      <p id="finalSub"></p>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" style="width:100%;background:#1d9e75;"></div></div>
+  <div class="content" id="finalContent"></div>
+  <div class="bottom-bar">
+    <button class="btn-primary" onclick="resetAll()">Neue Prüfung starten</button>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="analyzing-overlay" id="overlay" style="display:none">
+  <div class="spinner"></div>
+  <h2 id="overlayTitle">Wird analysiert…</h2>
+  <p id="overlayDesc"></p>
+  <div class="step-dots">
+    <div class="step-dot active" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+const DROPBOX_URL = 'https://dl.dropboxusercontent.com/scl/fi/wvtugp7158vrz7vrpcs57/Kommissionierscheine.pdf?rlkey=feob8tyk6j910rkt7md33ut2f&raw=1';
+const DB_KEY = 'produkt_db_v2';
+const API_KEY_STORAGE = 'ow_claude_api_key';
+const MAX_FOTOS = 6;
+
+function getApiKey() { return localStorage.getItem(API_KEY_STORAGE) || ''; }
+function saveApiKey(k) { localStorage.setItem(API_KEY_STORAGE, k.trim()); }
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let db = [];
+let pdfDoc = null;
+let totalPages = 0;
+let pageImages = {};       // pageNum -> base64
+let lieferungen = [];      // [{lieferNr, seiten:[1,2,...], info}]
+let currentLieferIdx = 0;
+let currentSeiteIdx = 0;
+let produktFotos = [];
+let allResults = [];
+let extractionDone = false;
+
+// ── DB ──────────────────────────────────────────────────
+function loadDB() {
+  try { db = JSON.parse(localStorage.getItem(DB_KEY) || '[]'); } catch { db = []; }
+  document.getElementById('dbStatus').textContent = db.length > 0 ? db.length + ' Produkte' : 'Keine Datenbank';
+  document.getElementById('dbWarning').style.display = db.length > 0 ? 'none' : 'block';
+}
+
+// ── PDF laden ───────────────────────────────────────────
+async function loadPDF() {
+  extractionDone = false;
+  pageImages = {};
+  lieferungen = [];
+  document.getElementById('pdfPageContainer').innerHTML = `<div class="pdf-page-loading"><div class="pdf-page-loading-icon">⏳</div>PDF wird aus Dropbox geladen…</div>`;
+  document.getElementById('pdfCardSub').textContent = 'Wird geladen…';
+  document.getElementById('selectLoading').style.display = 'flex';
+  document.getElementById('lieferungSelect').style.display = 'none';
+  document.getElementById('pagePill').textContent = '–';
+  checkReady();
+
+  try {
+    pdfDoc = await pdfjsLib.getDocument({ url: DROPBOX_URL, withCredentials: false }).promise;
+    totalPages = pdfDoc.numPages;
+    document.getElementById('pdfCardSub').textContent = totalPages + ' Seite' + (totalPages > 1 ? 'n' : '');
+
+    // Alle Seiten rendern (parallel)
+    const renderPromises = [];
+    for (let i = 1; i <= totalPages; i++) { renderPromises.push(renderPageToCache(i)); }
+    await Promise.all(renderPromises);
+
+    // Seite 1 sofort anzeigen
+    await showPageCanvas(1);
+    document.getElementById('pagePill').textContent = `Seite 1 / ${totalPages}`;
+    checkReady();
+
+    // Liefernummern im Hintergrund extrahieren
+    extractLieferungen();
+
+  } catch(e) {
+    document.getElementById('pdfPageContainer').innerHTML = `<div class="pdf-error">❌ PDF konnte nicht geladen werden.<br><small>${e.message}</small></div>`;
+    document.getElementById('selectLoading').style.display = 'none';
+  }
+}
+
+async function renderPageToCache(pageNum) {
+  const page = await pdfDoc.getPage(pageNum);
+  const viewport = page.getViewport({ scale: 2.0 });
+  const canvas = document.createElement('canvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  pageImages[pageNum] = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+}
+
+async function showPageCanvas(pageNum) {
+  const container = document.getElementById('pdfPageContainer');
+  container.innerHTML = '';
+  const img = new Image();
+  await new Promise(res => {
+    img.onload = res;
+    img.src = 'data:image/jpeg;base64,' + pageImages[pageNum];
+  });
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width; canvas.height = img.height;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  container.appendChild(canvas);
+}
+
+// ── Liefernummern extrahieren (im Hintergrund) ──────────
+async function extractLieferungen() {
+  // Jede Seite einzeln auslesen – zuverlässiger als alle auf einmal
+  const pageNrs = {}; // pageNum -> lieferNr
+
+  for (let i = 1; i <= totalPages; i++) {
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': getApiKey(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-allow-browser': 'true' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514', max_tokens: 100,
+          system: 'Lies die Liefernummer aus dem Kommissionierschein. Antworte NUR mit der Zahl/dem Code, nichts weiter. Beispiel: 71167',
+          messages: [{ role: 'user', content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[i] } },
+            { type: 'text', text: 'Was ist die Liefernummer auf diesem Dokument? Antworte nur mit der Nummer, z.B. 71167. Falls keine Liefernummer erkennbar ist, antworte mit "?".' }
+          ]}]
+        })
+      });
+      const data = await resp.json();
+      const nr = (data.content[0].text || '').trim().replace(/[^a-zA-Z0-9\-\/]/g, '');
+      pageNrs[i] = nr && nr !== '?' ? nr : null;
+    } catch(e) {
+      pageNrs[i] = null;
+    }
+  }
+
+  // Seiten mit gleicher Liefernummer gruppieren
+  const groups = {};
+  for (let i = 1; i <= totalPages; i++) {
+    const nr = pageNrs[i] || `Seite ${i}`;
+    if (!groups[nr]) groups[nr] = [];
+    groups[nr].push(i);
+  }
+
+  lieferungen = Object.entries(groups).map(([lieferNr, seiten]) => ({ lieferNr, seiten, info: '' }));
+
+  // Sortieren nach erster Seite
+  lieferungen.sort((a, b) => a.seiten[0] - b.seiten[0]);
+
+  // Dropdown befüllen
+  const sel = document.getElementById('lieferungSelect');
+  sel.innerHTML = lieferungen.map((l, i) =>
+    `<option value="${i}">${l.lieferNr}${l.info ? ' – ' + l.info : ''}</option>`
+  ).join('');
+  sel.value = '0';
+
+  document.getElementById('selectLoading').style.display = 'none';
+  sel.style.display = 'block';
+  extractionDone = true;
+
+  // Seite 1 / Lieferung 1 ist schon aktiv
+  currentLieferIdx = 0;
+  currentSeiteIdx = 0;
+  updatePill();
+  checkReady();
+}
+
+function onDropdownChange() {
+  const idx = parseInt(document.getElementById('lieferungSelect').value);
+  if (idx === currentLieferIdx) return;
+  currentLieferIdx = idx;
+  currentSeiteIdx = 0;
+  produktFotos = [];
+  allResults = [];
+  renderFotoGrid();
+  const seite = lieferungen[currentLieferIdx].seiten[0];
+  showPageCanvas(seite);
+  updatePill();
+  checkReady();
+}
+
+function updatePill() {
+  if (!lieferungen.length) { document.getElementById('pagePill').textContent = '–'; return; }
+  const l = lieferungen[currentLieferIdx];
+  const totalS = l.seiten.length;
+  document.getElementById('pagePill').textContent = totalS > 1 ? `Seite ${currentSeiteIdx+1} / ${totalS}` : l.lieferNr;
+}
+
+function reloadAll() {
+  currentLieferIdx = 0; currentSeiteIdx = 0; allResults = []; produktFotos = [];
+  renderFotoGrid();
+  loadPDF();
+}
+
+// ── Fotos ────────────────────────────────────────────────
+function triggerFoto() { document.getElementById('fileInput').value=''; document.getElementById('fileInput').click(); }
+
+function handleFotoInput(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { produktFotos.push(ev.target.result); renderFotoGrid(); checkReady(); };
+  reader.readAsDataURL(file);
+}
+
+function deleteFoto(idx) { produktFotos.splice(idx,1); renderFotoGrid(); checkReady(); }
+
+function renderFotoGrid() {
+  const grid = document.getElementById('fotoGrid');
+  const pill = document.getElementById('fotoCountPill');
+  const addBtn = document.getElementById('btnAddFoto');
+  pill.textContent = produktFotos.length + (produktFotos.length===1?' Foto':' Fotos');
+  addBtn.disabled = produktFotos.length >= MAX_FOTOS;
+  addBtn.textContent = produktFotos.length >= MAX_FOTOS ? `Maximum (${MAX_FOTOS}) erreicht` : '+ Foto hinzufügen';
+  if (produktFotos.length === 0) {
+    grid.innerHTML = `<div class="foto-slot" onclick="triggerFoto()" style="grid-column:span 2;aspect-ratio:16/7;">
+      <div class="foto-slot-hint"><div class="foto-slot-hint-icon">📷</div>Tippen zum Fotografieren</div></div>`;
+    return;
+  }
+  grid.innerHTML = produktFotos.map((src,i) => `
+    <div class="foto-slot has-photo">
+      <img src="${src}" alt="Foto ${i+1}">
+      <button class="foto-slot-del" onclick="deleteFoto(${i})">×</button>
+      <span class="foto-slot-label">Foto ${i+1}</span>
+    </div>`).join('');
+}
+
+function checkReady() {
+  const lief = lieferungen[currentLieferIdx];
+  const seite = lief?.seiten[currentSeiteIdx];
+  const ok = !!seite && !!pageImages[seite] && produktFotos.length > 0;
+  document.getElementById('btnCheck').disabled = !ok;
+  const pct = (pageImages[seite] ? 50 : 0) + (produktFotos.length > 0 ? 50 : 0);
+  document.getElementById('progFill').style.width = pct + '%';
+}
+
+// ── Analyse ─────────────────────────────────────────────
+function setOverlay(title, desc, step) {
+  document.getElementById('overlayTitle').textContent = title;
+  document.getElementById('overlayDesc').textContent = desc;
+  [1,2,3].forEach(i => document.getElementById('dot'+i).classList.toggle('active', i===step));
+  document.getElementById('overlay').style.display = 'flex';
+}
+function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
+
+async function callClaude(messages, system, maxTokens) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': getApiKey(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-allow-browser': 'true' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: maxTokens, system, messages })
+  });
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content[0].text;
+}
+
+async function runCheck() {
+  document.getElementById('btnCheck').disabled = true;
+  const lief = lieferungen[currentLieferIdx];
+  const seite = lief.seiten[currentSeiteIdx];
+
+  // Schritt 1: Schein lesen
+  setOverlay('Schein wird gelesen…', lief.lieferNr, 1);
+  let scheinData;
+  try {
+    const raw = await callClaude([{ role: 'user', content: [
+      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[seite] } },
+      { type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen mit Artikelnummer/SKU, Produktname und Menge. Antworte NUR mit JSON ohne Markdown:\n{"positionen":[{"sku":"...","name":"...","menge":1}]}` }
+    ]}],
+    'Du bist ein Lagerverwaltungssystem. Lies Kommissionierscheine präzise aus. Antworte nur mit validem JSON.', 1000);
+    scheinData = JSON.parse(raw.replace(/```json|```/g,'').trim());
+  } catch(e) {
+    hideOverlay();
+    showPageError('Fehler beim Lesen des Scheins: ' + e.message);
+    document.getElementById('btnCheck').disabled = false;
+    return;
+  }
+
+  // Schritt 2: Produkte erkennen
+  setOverlay('Produkte werden erkannt…', `${produktFotos.length} Foto${produktFotos.length>1?'s':''} werden analysiert`, 2);
+  let produkteData;
+  try {
+    const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name} | ${p.analysis?.beschreibung||''}`).join('\n');
+    const fotoBlocks = produktFotos.map((src,i) => [
+      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: src.split(',')[1] } },
+      { type: 'text', text: `Foto ${i+1} von ${produktFotos.length}` }
+    ]).flat();
+    fotoBlocks.push({ type: 'text', text: `Erkenne alle Produkte auf allen ${produktFotos.length} Foto${produktFotos.length>1?'s':''}. Zähle zusammen – kein Produkt doppelt. Produktdatenbank:\n\n${dbCtx}\n\nAntworte NUR mit JSON:\n{"erkannt":[{"sku":"...","name":"...","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` });
+    const raw = await callClaude([{ role: 'user', content: fotoBlocks }],
+      'Du bist ein Produkterkennungssystem. Antworte nur mit validem JSON.', 1500);
+    produkteData = JSON.parse(raw.replace(/```json|```/g,'').trim());
+  } catch(e) {
+    hideOverlay();
+    showPageError('Fehler beim Erkennen der Produkte: ' + e.message);
+    document.getElementById('btnCheck').disabled = false;
+    return;
+  }
+
+  // Schritt 3: Abgleich
+  setOverlay('Abgleich…', 'Soll-Ist-Vergleich', 3);
+  await new Promise(r => setTimeout(r, 400));
+  hideOverlay();
+
+  const results = doCompare(scheinData.positionen||[], produkteData.erkannt||[]);
+  allResults.push({ seite, seiteIdx: currentSeiteIdx, results });
+  showPageResult(results);
+}
+
+function doCompare(soll, ist) {
+  const results = [];
+  const istMap = {};
+  ist.forEach(p => { istMap[p.sku||p.name] = p; });
+  soll.forEach(pos => {
+    const found = ist.find(p =>
+      p.sku === pos.sku ||
+      p.name.toLowerCase().includes(pos.name.toLowerCase().split(' ')[0]) ||
+      pos.name.toLowerCase().includes(p.name.toLowerCase().split(' ')[0])
+    );
+    if (found) {
+      results.push({ type: found.menge===pos.menge?'match':'mismatch', soll: pos, ist: found, diff: found.menge-pos.menge });
+      delete istMap[found.sku||found.name];
+    } else {
+      results.push({ type: 'missing', soll: pos, ist: null, diff: -pos.menge });
+    }
+  });
+  Object.values(istMap).forEach(p => results.push({ type: 'extra', soll: null, ist: p, diff: p.menge }));
+  return results;
+}
+
+// ── Seiten-Ergebnis ─────────────────────────────────────
+function showPageResult(results) {
+  const lief = lieferungen[currentLieferIdx];
+  const totalSeiten = lief.seiten.length;
+  const isLast = currentSeiteIdx >= totalSeiten - 1;
+  const allOk = results.every(r => r.type === 'match');
+
+  document.getElementById('resultSub').textContent = lief.lieferNr + (lief.info ? ' – ' + lief.info : '');
+  document.getElementById('resultPill').textContent = totalSeiten > 1 ? `Seite ${currentSeiteIdx+1} / ${totalSeiten}` : lief.lieferNr;
+
+  const bc = allOk?'ok':(results.some(r=>r.type==='missing')?'err':'warn');
+  const bi = allOk?'✅':(results.some(r=>r.type==='missing')?'❌':'⚠️');
+  const bd = allOk
+    ? `${results.length} Position${results.length!==1?'en':''} korrekt.`
+    : [results.filter(r=>r.type==='mismatch').length>0?results.filter(r=>r.type==='mismatch').length+' falsche Menge':'',
+       results.filter(r=>r.type==='missing').length>0?results.filter(r=>r.type==='missing').length+' fehlen':'',
+       results.filter(r=>r.type==='extra').length>0?results.filter(r=>r.type==='extra').length+' nicht auf Schein':''].filter(Boolean).join(' · ');
+
+  let html = `<div class="result-banner ${bc}"><div class="banner-icon">${bi}</div><div class="banner-text"><h2>${allOk?'Korrekt':'Abweichungen'}</h2><p>${bd}</p></div></div>`;
+  const problems = results.filter(r=>r.type!=='match');
+  if (problems.length > 0) { html += '<div class="section-title">Abweichungen</div>'; problems.forEach(r => { html += renderRow(r); }); html += '<div class="section-title">Alle Positionen</div>'; }
+  results.forEach(r => { html += renderRow(r); });
+
+  document.getElementById('resultContent').innerHTML = html;
+  const bar = document.getElementById('resultBottomBar');
+  if (isLast) {
+    bar.innerHTML = `<button class="btn-secondary" onclick="showCheckScreen()">↩ Nochmal</button><button class="btn-success" onclick="showFinalResult()">Fertig ✓</button>`;
+  } else {
+    bar.innerHTML = `<button class="btn-secondary" onclick="showCheckScreen()">↩ Nochmal</button><button class="btn-success" onclick="nextSeite()">Weiter → Seite ${currentSeiteIdx+2}</button>`;
+  }
+
+  document.getElementById('screenCheck').style.display = 'none';
+  document.getElementById('screenResult').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function showPageError(msg) {
+  document.getElementById('resultContent').innerHTML = `<div class="result-banner err"><div class="banner-icon">❌</div><div class="banner-text"><h2>Fehler</h2><p>${msg}</p></div></div>`;
+  document.getElementById('resultBottomBar').innerHTML = `<button class="btn-primary" onclick="showCheckScreen()">← Zurück</button>`;
+  document.getElementById('screenCheck').style.display = 'none';
+  document.getElementById('screenResult').style.display = 'block';
+}
+
+async function nextSeite() {
+  currentSeiteIdx++;
+  produktFotos = [];
+  renderFotoGrid();
+  document.getElementById('screenResult').style.display = 'none';
+  document.getElementById('screenCheck').style.display = 'block';
+  const seite = lieferungen[currentLieferIdx].seiten[currentSeiteIdx];
+  await showPageCanvas(seite);
+  updatePill();
+  checkReady();
+  window.scrollTo(0,0);
+}
+
+function showCheckScreen() {
+  document.getElementById('screenResult').style.display = 'none';
+  document.getElementById('screenCheck').style.display = 'block';
+  checkReady();
+  window.scrollTo(0,0);
+}
+
+// ── Gesamtergebnis ──────────────────────────────────────
+function showFinalResult() {
+  const allR = allResults.flatMap(p => p.results);
+  const tm=allR.filter(r=>r.type==='match').length;
+  const tmm=allR.filter(r=>r.type==='mismatch').length;
+  const tmi=allR.filter(r=>r.type==='missing').length;
+  const te=allR.filter(r=>r.type==='extra').length;
+  const allOk=tmm===0&&tmi===0&&te===0;
+  const lief = lieferungen[currentLieferIdx];
+
+  document.getElementById('finalSub').textContent = lief.lieferNr + ' · ' + allResults.length + ' Seite' + (allResults.length!==1?'n':'') + ' geprüft';
+
+  let html = `<div class="result-banner ${allOk?'ok':tmi>0?'err':'warn'}">
+    <div class="banner-icon">${allOk?'✅':tmi>0?'❌':'⚠️'}</div>
+    <div class="banner-text"><h2>${allOk?'Lieferung korrekt':'Abweichungen gefunden'}</h2>
+    <p>${tm} OK${tmm>0?' · '+tmm+' Mengenfehler':''}${tmi>0?' · '+tmi+' fehlen':''}${te>0?' · '+te+' extra':''}</p></div></div>`;
+
+  html += `<div class="total-card">
+    <div class="total-row"><span class="total-label">Korrekte Positionen</span><span class="total-val ok">${tm}</span></div>
+    <div class="total-row"><span class="total-label">Falsche Mengen</span><span class="total-val ${tmm>0?'err':'ok'}">${tmm}</span></div>
+    <div class="total-row"><span class="total-label">Fehlende Artikel</span><span class="total-val ${tmi>0?'err':'ok'}">${tmi}</span></div>
+    <div class="total-row"><span class="total-label">Nicht auf Schein</span><span class="total-val ${te>0?'err':'ok'}">${te}</span></div>
+  </div>`;
+
+  allResults.forEach((pr, i) => {
+    const probs = pr.results.filter(r=>r.type!=='match');
+    html += `<div class="raw-section">
+      <div class="raw-title" onclick="toggleRaw(this)">
+        Seite ${i+1} – ${probs.length===0?'✅ OK':'⚠️ '+probs.length+' Abweichung'+(probs.length!==1?'en':'')}
+        <span style="color:#aaa;">▸</span></div>
+      <div class="raw-body">${pr.results.map(r=>renderRow(r)).join('')}</div>
+    </div>`;
+  });
+
+  document.getElementById('finalContent').innerHTML = html;
+  document.getElementById('screenResult').style.display = 'none';
+  document.getElementById('screenFinal').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+// ── Reset ───────────────────────────────────────────────
+function resetAll() {
+  currentLieferIdx=0; currentSeiteIdx=0; allResults=[]; produktFotos=[]; pageImages={};
+  renderFotoGrid();
+  document.getElementById('screenFinal').style.display='none';
+  document.getElementById('screenResult').style.display='none';
+  document.getElementById('screenCheck').style.display='block';
+  window.scrollTo(0,0);
+  loadPDF();
+}
+
+// ── Helpers ─────────────────────────────────────────────
+function renderRow(r) {
+  const dbItem = db.find(p=>p.ean===(r.soll?.sku||r.ist?.sku)) ||
+    db.find(p=>r.soll?.name&&p.name.toLowerCase().includes(r.soll.name.toLowerCase().split(' ')[0]));
+  const img=dbItem?.shopifyImg||'';
+  const name=r.soll?.name||r.ist?.name||'?';
+  const sku=r.soll?.sku||r.ist?.sku||'–';
+  let detail='',badge='',cls='';
+  if(r.type==='match'){detail=`✓ ${r.soll.menge}x — korrekt`;cls='ok';badge='✅';}
+  else if(r.type==='mismatch'){detail=`Soll: ${r.soll.menge}x · Ist: ${r.ist.menge}x (${r.diff>0?'+':''}${r.diff})`;cls='err';badge='⚠️';}
+  else if(r.type==='missing'){detail=`Fehlt (${r.soll.menge}x erwartet)`;cls='err';badge='❌';}
+  else{detail=`${r.ist.menge}x nicht auf Schein · ${r.ist.konfidenz}`;cls='info';badge='➕';}
+  return `<div class="item-row ${r.type}">
+    ${img?`<img class="item-thumb" src="${img}" onerror="this.style.display='none'" alt="">`:'<div class="item-thumb"></div>'}
+    <div class="item-info"><div class="item-name">${name}</div><div class="item-sku">${sku}</div><div class="item-detail ${cls}">${detail}</div></div>
+    <div class="item-badge">${badge}</div></div>`;
+}
+
+function toggleRaw(el) {
+  const b=el.nextElementSibling; b.classList.toggle('open');
+  el.querySelector('span').textContent=b.classList.contains('open')?'▾':'▸';
+}
+
+function saveKeyAndStart() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    document.getElementById('apiKeyError').style.display = 'block';
+    return;
+  }
+  saveApiKey(key);
+  document.getElementById('apiKeyError').style.display = 'none';
+  document.getElementById('screenApiKey').style.display = 'none';
+  document.getElementById('screenCheck').style.display = 'block';
+  loadDB();
+  renderFotoGrid();
+  loadPDF();
+}
+
+function resetApiKey() { localStorage.removeItem(API_KEY_STORAGE); location.reload(); }
+
+// ── Init ────────────────────────────────────────────────
+if (getApiKey()) {
+  loadDB();
+  renderFotoGrid();
+  loadPDF();
+  document.getElementById('screenCheck').style.display = 'block';
+} else {
+  document.getElementById('screenApiKey').style.display = 'block';
+}
+loadPDF();
+</script>
+</body>
+</html>

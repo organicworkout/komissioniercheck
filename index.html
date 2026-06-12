@@ -19,7 +19,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .progress-bar { height: 3px; background: #e5e5e5; }
 .progress-fill { height: 3px; background: #1d9e75; transition: width 0.4s; }
 
-.content { padding: 16px 16px 90px; }
+.content { padding: 16px 16px 150px; }
 
 /* PDF Karte */
 .pdf-card { background: #fff; border-radius: 16px; overflow: hidden; margin-bottom: 16px; border: 1px solid #eee; }
@@ -62,7 +62,7 @@ input[type=file] { display: none; }
 .db-warning { background: #faeeda; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #ba7517; margin-bottom: 14px; }
 
 /* Bottom */
-.bottom-bar { position: fixed; bottom: 60px; left: 0; right: 0; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #e5e5e5; display: flex; gap: 8px; }
+.bottom-bar { position: fixed; bottom: 60px; left: 0; right: 0; padding: 12px 16px; background: #fff; border-top: 1px solid #e5e5e5; display: flex; gap: 8px; z-index: 900; }
 .btn-primary { flex: 1; background: #111; color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; }
 .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
 .btn-secondary { background: #f5f5f5; color: #111; border: 1.5px solid #ddd; border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -101,7 +101,7 @@ input[type=file] { display: none; }
 .raw-body { margin-top: 10px; display: none; }
 .raw-body.open { display: block; }
 
-.analyzing-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.93); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.analyzing-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.93); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
 .analyzing-overlay h2 { font-size: 17px; font-weight: 700; }
 .analyzing-overlay p { font-size: 13px; color: #888; text-align: center; padding: 0 28px; }
 .spinner { width: 42px; height: 42px; border: 4px solid #eee; border-top-color: #1d9e75; border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -111,13 +111,14 @@ input[type=file] { display: none; }
 .step-dot.active { background: #1d9e75; }
 
 /* Tab Navigation */
-.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e5e5e5; display: flex; z-index: 500; padding-bottom: env(safe-area-inset-bottom); }
-.tab-btn { flex: 1; padding: 10px 0 8px; border: none; background: none; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; color: #999; font-size: 10px; font-weight: 500; -webkit-tap-highlight-color: transparent; }
+.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e5e5e5; display: flex; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+.tab-btn { flex: 1; padding: 10px 0 8px; border: none; background: none; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; color: #999; font-size: 10px; font-weight: 500; }
 .tab-btn.active { color: #1d9e75; }
 .tab-btn .tab-icon { font-size: 22px; }
-#screenDb { display: none; padding-bottom: 80px; }
+#screenDb { display: none; }
+#screenDb.active { display: block; }
 
-/* DB Styles */
+/* DB App CSS */
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #111; min-height: 100vh; }
@@ -144,7 +145,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .btn-nein { width: 44px; height: 36px; border-radius: 10px; border: 1.5px solid #ddd; background: #f5f5f5; font-size: 12px; font-weight: 600; cursor: pointer; color: #555; }
 .btn-ja.active { background: #1d9e75; border-color: #1d9e75; color: white; }
 .btn-nein.active { background: #e24b4a; border-color: #e24b4a; color: white; }
-.bottom-bar { position: fixed; bottom: 60px; left: 0; right: 0; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #e5e5e5; display: flex; gap: 8px; }
+.bottom-bar { position: fixed; bottom: 60px; left: 0; right: 0; padding: 12px 16px; background: #fff; border-top: 1px solid #e5e5e5; display: flex; gap: 8px; z-index: 900; }
 .btn-primary { flex: 1; background: #111; color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; }
 .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
 .btn-secondary { background: #f5f5f5; color: #111; border: 1.5px solid #ddd; border-radius: 14px; padding: 16px 14px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -163,7 +164,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .photo-status.done { background: #e6f4ef; color: #1d9e75; display: block; }
 .photo-status.err { background: #fcebeb; color: #a32d2d; display: block; }
 input[type=file] { display: none; }
-.phase3 { padding: 16px 16px 120px; }
+.phase3 { padding: 16px 16px 180px; }
 .section-title { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px; }
 .saved-item { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 14px; padding: 12px; margin-bottom: 8px; }
 .saved-item img { width: 52px; height: 52px; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
@@ -177,8 +178,8 @@ input[type=file] { display: none; }
 .db-actions .export-btn { background: #1d9e75; color: white; border-color: #1d9e75; }
 .db-actions .import-btn { background: #fff; color: #111; }
 /* Modal */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
-.modal { background: #fff; border-radius: 20px 20px 0 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); width: 100%; max-width: 480px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1100; display: flex; align-items: flex-end; justify-content: center; }
+.modal { background: #fff; border-radius: 20px 20px 0 0; padding: 20px 20px calc(80px + env(safe-area-inset-bottom)); width: 100%; max-width: 480px; }
 .modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; text-align: center; }
 .modal p { font-size: 13px; color: #888; text-align: center; margin-bottom: 16px; }
 .modal-close { width: 100%; padding: 14px; background: #f5f5f5; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 12px; }
@@ -228,7 +229,7 @@ input[type=file] { display: none; }
   <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
 
   <div class="content">
-    <div id="dbWarning" class="db-warning" style="display:none">⚠️ Keine Produktdatenbank – bitte im Tab 📦 Datenbank Produkte hinzufügen.</div>
+    <div id="dbWarning" class="db-warning" style="display:none">⚠️ Keine Produktdatenbank – bitte zuerst im Tab „📦 Datenbank" Produkte hinzufügen.</div>
 
     <!-- PDF + Dropdown in einer Karte -->
     <div class="pdf-card">
@@ -314,113 +315,7 @@ input[type=file] { display: none; }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-
-<!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" id="tabCheck" onclick="switchTab('check')">
-    <span class="tab-icon">📋</span>Check
-  </button>
-  <button class="tab-btn" id="tabDb" onclick="switchTab('db')">
-    <span class="tab-icon">📦</span>Datenbank
-  </button>
-</div>
-
-<!-- Datenbank Screen -->
-<div id="screenDb">
-<!-- Phase 1: Auswahl -->
-<div id="appPhase1">
-  <div class="header">
-    <h1>Produkt-Datenbank</h1>
-    <p>Welche Produkte sollen aufgenommen werden?</p>
-  </div>
-  <div class="progress-bar"><div class="progress-fill" id="progFill1" style="width:0%"></div></div>
-  <div class="toolbar">
-    <input type="search" id="searchInput" placeholder="Suchen…" oninput="filterList()">
-    <select id="vendorFilter" onchange="filterList()">
-      <option value="">Alle</option>
-      <option value="Organic Workout">OW</option>
-      <option value="Green Organic">GO</option>
-      <option value="OW">OW²</option>
-    </select>
-  </div>
-  <div class="count-bar">
-    <span id="countInfo">0 Produkte</span>
-    <span class="sel-pill" id="selPill">0 ausgewählt</span>
-  </div>
-  <div class="list" id="productList"></div>
-  <div class="bottom-bar">
-    <button class="btn-secondary" onclick="showDBPhase()">Datenbank</button>
-    <button class="btn-primary" id="btn1" disabled onclick="goPhase2()">Weiter → Fotos machen</button>
-  </div>
-</div>
-
-<!-- Phase 2: Fotos -->
-<div id="appPhase2" style="display:none">
-  <div class="header">
-    <h1>Fotos machen</h1>
-    <p id="phase2Info">0 von 0 fotografiert</p>
-  </div>
-  <div class="progress-bar"><div class="progress-fill" id="progFill2" style="width:0%"></div></div>
-  <div class="phase2" id="photoCards"></div>
-  <div class="bottom-bar">
-    <button class="btn-secondary" onclick="goPhase1()">← Zurück</button>
-    <button class="btn-primary" id="btnSave" onclick="saveAll()">Speichern</button>
-  </div>
-</div>
-
-<!-- Phase 3: Datenbank -->
-<div id="appPhase3" style="display:none">
-  <div class="header">
-    <h1>Datenbank</h1>
-    <p id="dbInfo">0 Produkte gespeichert</p>
-  </div>
-  <div class="phase3">
-    <div class="db-actions">
-      <button class="export-btn" onclick="showExportModal()">📤 Exportieren (QR)</button>
-      <button class="import-btn" onclick="showImportModal()">📥 Importieren</button>
-    </div>
-    <div id="dbView"></div>
-  </div>
-  <div class="bottom-bar">
-    <button class="btn-primary" onclick="goPhase1()">+ Weitere Produkte hinzufügen</button>
-  </div>
-</div>
-
-<!-- Export Modal -->
-<div class="modal-overlay" id="exportModal" style="display:none" onclick="closeExport(event)">
-  <div class="modal">
-    <h2>Datenbank exportieren</h2>
-    <p>Scanne diesen QR-Code mit dem neuen Handy, um die Datenbank zu übertragen.</p>
-    <canvas id="qrCanvas" width="220" height="220"></canvas>
-    <p id="qrInfo" style="font-size:11px; color:#aaa;"></p>
-    <button class="modal-close" onclick="document.getElementById('exportModal').style.display='none'">Schließen</button>
-  </div>
-</div>
-
-<!-- Import Modal -->
-<div class="modal-overlay" id="importModal" style="display:none" onclick="closeImport(event)">
-  <div class="modal">
-    <h2>Datenbank importieren</h2>
-    <p>Lade eine exportierte JSON-Datei hoch oder scanne den QR-Code mit der Kamera-App und öffne den Link.</p>
-    <div class="import-area" onclick="document.getElementById('importFile').click()">
-      <p>📂 JSON-Datei auswählen</p>
-      <p style="font-size:12px;color:#888;">Tippe hier um die Datei auszuwählen</p>
-      <input type="file" id="importFile" accept=".json,application/json,text/plain,*/*" onchange="handleImportFile(this)" style="display:block;opacity:0;position:absolute;width:100%;height:100%;top:0;left:0;cursor:pointer;">
-    </div>
-    <div class="import-success" id="importSuccess"></div>
-    <div class="import-err" id="importErr"></div>
-    <button class="modal-close" onclick="document.getElementById('importModal').style.display='none'">Schließen</button>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-
 const DROPBOX_APP_KEY = 'nn1unj4dffy06gv';
 const DROPBOX_APP_SECRET = 'ridyb6ymk19p2hg';
 const DROPBOX_REFRESH_TOKEN = '4DoFgQlabhQAAAAAAAAAAf_hPAU4QjHqY8d3RijGiDEiXzR9o_5buqIuLrOvDnV9';
@@ -443,7 +338,6 @@ async function getDropboxToken() {
   dropboxAccessToken = data.access_token;
   return dropboxAccessToken;
 }
-const DB_KEY = 'produkt_db_v2';
 const API_KEY_STORAGE = 'ow_claude_api_key';
 const MAX_FOTOS = 6;
 
@@ -474,11 +368,14 @@ let checkedLieferungen = new Set(); // Indizes bereits abgeschlossener Lieferung
 let extractionDone = false;
 
 // ── DB ──────────────────────────────────────────────────
+const STORAGE_KEY = 'produkt_db_v2';
 function loadDB() {
-  try { db = JSON.parse(localStorage.getItem(DB_KEY) || '[]'); } catch { db = []; }
+  try { db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { db = []; }
   document.getElementById('dbStatus').textContent = db.length > 0 ? db.length + ' Produkte' : 'Keine Datenbank';
   document.getElementById('dbWarning').style.display = db.length > 0 ? 'none' : 'block';
+  return db;
 }
+function saveDB(db) { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
 
 // ── PDF laden ───────────────────────────────────────────
 async function loadPDF() {
@@ -731,46 +628,53 @@ async function runCheck() {
   const lief = lieferungen[currentLieferIdx];
   const seite = lief.seiten[currentSeiteIdx];
 
-  // Schritt 1: Schein lesen
-  setOverlay('Schein wird gelesen…', lief.lieferNr, 1);
-  let scheinData;
+  setOverlay('Schein & Produkte werden analysiert…', lief.lieferNr, 1);
+
+  // Schein-Text direkt aus PDF extrahieren (kein API Call nötig)
+  let scheinText = '';
   try {
-    const raw = await callClaude([{ role: 'user', content: [
-      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[seite] } },
-      { type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen mit Artikelnummer/SKU, Produktname und Menge. Antworte NUR mit JSON ohne Markdown:\n{"positionen":[{"sku":"...","name":"...","menge":1}]}` }
-    ]}],
-    'Du bist ein Lagerverwaltungssystem. Lies Kommissionierscheine präzise aus. Antworte nur mit validem JSON.', 1000);
-    scheinData = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const page = await pdfDoc.getPage(seite);
+    const tc = await page.getTextContent();
+    scheinText = tc.items.map(i => i.str).join(' ');
+  } catch(e) {}
+
+  // Beide Calls parallel starten
+  const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name} | ${p.analysis?.beschreibung||''}`).join('\n');
+
+  const fotoBlocks = produktFotos.map((src,i) => [
+    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: src.split(',')[1] } },
+    { type: 'text', text: `Foto ${i+1} von ${produktFotos.length}` }
+  ]).flat();
+  fotoBlocks.push({ type: 'text', text: `Erkenne alle Produkte auf allen ${produktFotos.length} Foto${produktFotos.length>1?'s':''}. Zähle zusammen – kein Produkt doppelt. Produktdatenbank:\n\n${dbCtx}\n\nAntworte NUR mit JSON:\n{"erkannt":[{"sku":"...","name":"...","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` });
+
+  // Schein-Call: Text wenn vorhanden, sonst Bild als Fallback
+  const scheinContent = scheinText.length > 50
+    ? [{ type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen mit Produktname und Menge. Text des Scheins:\n\n${scheinText}\n\nAntworte NUR mit JSON ohne Markdown:\n{"positionen":[{"name":"...","menge":1}]}` }]
+    : [
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[seite] } },
+        { type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen. Antworte NUR mit JSON:\n{"positionen":[{"name":"...","menge":1}]}` }
+      ];
+
+  let scheinData, produkteData;
+  try {
+    const [scheinRaw, produkteRaw] = await Promise.all([
+      callClaude([{ role: 'user', content: scheinContent }],
+        'Du bist ein Lagerverwaltungssystem. Lies Kommissionierscheine präzise aus. Antworte nur mit validem JSON.', 1000),
+      callClaude([{ role: 'user', content: fotoBlocks }],
+        'Du bist ein Produkterkennungssystem. Antworte nur mit validem JSON.', 1500)
+    ]);
+    scheinData = JSON.parse(scheinRaw.replace(/```json|```/g,'').trim());
+    produkteData = JSON.parse(produkteRaw.replace(/```json|```/g,'').trim());
   } catch(e) {
     hideOverlay();
-    showPageError('Fehler beim Lesen des Scheins: ' + e.message);
+    showPageError('Fehler beim Analysieren: ' + e.message);
     document.getElementById('btnCheck').disabled = false;
     return;
   }
 
-  // Schritt 2: Produkte erkennen
-  setOverlay('Produkte werden erkannt…', `${produktFotos.length} Foto${produktFotos.length>1?'s':''} werden analysiert`, 2);
-  let produkteData;
-  try {
-    const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name} | ${p.analysis?.beschreibung||''}`).join('\n');
-    const fotoBlocks = produktFotos.map((src,i) => [
-      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: src.split(',')[1] } },
-      { type: 'text', text: `Foto ${i+1} von ${produktFotos.length}` }
-    ]).flat();
-    fotoBlocks.push({ type: 'text', text: `Erkenne alle Produkte auf allen ${produktFotos.length} Foto${produktFotos.length>1?'s':''}. Zähle zusammen – kein Produkt doppelt. Produktdatenbank:\n\n${dbCtx}\n\nAntworte NUR mit JSON:\n{"erkannt":[{"sku":"...","name":"...","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` });
-    const raw = await callClaude([{ role: 'user', content: fotoBlocks }],
-      'Du bist ein Produkterkennungssystem. Antworte nur mit validem JSON.', 1500);
-    produkteData = JSON.parse(raw.replace(/```json|```/g,'').trim());
-  } catch(e) {
-    hideOverlay();
-    showPageError('Fehler beim Erkennen der Produkte: ' + e.message);
-    document.getElementById('btnCheck').disabled = false;
-    return;
-  }
-
-  // Schritt 3: Abgleich
-  setOverlay('Abgleich…', 'Soll-Ist-Vergleich', 3);
-  await new Promise(r => setTimeout(r, 400));
+  // Abgleich
+  setOverlay('Abgleich…', 'Soll-Ist-Vergleich', 2);
+  await new Promise(r => setTimeout(r, 300));
   hideOverlay();
 
   const results = doCompare(scheinData.positionen||[], produkteData.erkannt||[]);
@@ -970,7 +874,7 @@ function saveKeyAndStart() {
   loadPDF();
 }
 
-
+function resetApiKey() { localStorage.removeItem(API_KEY_STORAGE); location.reload(); }
 
 // ── Init ────────────────────────────────────────────────
 if (getApiKey()) {
@@ -982,36 +886,112 @@ if (getApiKey()) {
   document.getElementById('screenApiKey').style.display = 'block';
 }
 loadPDF();
+</script>
 
-// ── STORAGE_KEY + saveDB ───────────────────────────────
-const STORAGE_KEY = DB_KEY;
-function saveDB(dbData) { localStorage.setItem(STORAGE_KEY, JSON.stringify(dbData)); }
+<!-- Tab Bar -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" id="tabCheck" onclick="switchTab('check')">
+    <span class="tab-icon">📋</span>Check
+  </button>
+  <button class="tab-btn" id="tabDb" onclick="switchTab('db')">
+    <span class="tab-icon">📦</span>Datenbank
+  </button>
+</div>
 
-// ── Tab Navigation ─────────────────────────────────────
-function switchTab(tab) {
-  const isCheck = tab === 'check';
-  document.getElementById('tabCheck').classList.toggle('active', isCheck);
-  document.getElementById('tabDb').classList.toggle('active', !isCheck);
-  document.getElementById('screenDb').style.display = isCheck ? 'none' : 'block';
-  const checkScreens = ['screenApiKey','screenCheck','screenResult','screenFinal'];
-  if (isCheck) {
-    loadDB();
-    const anyVisible = checkScreens.some(id => {
-      const el = document.getElementById(id);
-      return el && el.style.display !== 'none';
-    });
-    if (!anyVisible) document.getElementById('screenCheck').style.display = 'block';
-  } else {
-    checkScreens.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = 'none';
-    });
-    renderDB();
-  }
-}
+<!-- Screen: Datenbank -->
+<div id="screenDb">
+<!-- Phase 1: Auswahl -->
+<div id="appPhase1">
+  <div class="header">
+    <h1>Produkt-Datenbank</h1>
+    <p>Welche Produkte sollen aufgenommen werden?</p>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progFill1" style="width:0%"></div></div>
+  <div class="toolbar">
+    <input type="search" id="searchInput" placeholder="Suchen…" oninput="filterList()">
+    <select id="vendorFilter" onchange="filterList()">
+      <option value="">Alle</option>
+      <option value="Organic Workout">OW</option>
+      <option value="Green Organic">GO</option>
+      <option value="OW">OW²</option>
+    </select>
+  </div>
+  <div class="count-bar">
+    <span id="countInfo">0 Produkte</span>
+    <span class="sel-pill" id="selPill">0 ausgewählt</span>
+  </div>
+  <div class="list" id="productList"></div>
+  <div class="bottom-bar">
+    <button class="btn-secondary" onclick="showDBPhase()">Datenbank</button>
+    <button class="btn-primary" id="btn1" disabled onclick="goPhase2()">Weiter → Fotos machen</button>
+  </div>
+</div>
 
-// ── Datenbank-App Funktionen ───────────────────────────
+<!-- Phase 2: Fotos -->
+<div id="appPhase2" style="display:none">
+  <div class="header">
+    <h1>Fotos machen</h1>
+    <p id="phase2Info">0 von 0 fotografiert</p>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progFill2" style="width:0%"></div></div>
+  <div class="phase2" id="photoCards"></div>
+  <div class="bottom-bar">
+    <button class="btn-secondary" onclick="goPhase1()">← Zurück</button>
+    <button class="btn-primary" id="btnSave" onclick="saveAll()">Speichern</button>
+  </div>
+</div>
 
+<!-- Phase 3: Datenbank -->
+<div id="appPhase3" style="display:none">
+  <div class="header">
+    <h1>Datenbank</h1>
+    <p id="dbInfo">0 Produkte gespeichert</p>
+  </div>
+  <div class="phase3">
+    <div class="db-actions">
+      <button class="export-btn" onclick="showExportModal()">📤 Exportieren (QR)</button>
+      <button class="import-btn" onclick="showImportModal()">📥 Importieren</button>
+    </div>
+    <div id="dbView"></div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-primary" onclick="goPhase1()">+ Weitere Produkte hinzufügen</button>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal" style="display:none" onclick="closeExport(event)">
+  <div class="modal">
+    <h2>Datenbank exportieren</h2>
+    <p>Scanne diesen QR-Code mit dem neuen Handy, um die Datenbank zu übertragen.</p>
+    <canvas id="qrCanvas" width="220" height="220"></canvas>
+    <p id="qrInfo" style="font-size:11px; color:#aaa;"></p>
+    <button class="modal-close" onclick="document.getElementById('exportModal').style.display='none'">Schließen</button>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal" style="display:none" onclick="closeImport(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>Datenbank importieren</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:12px;">JSON-Datei auswählen oder Inhalt einfügen:</p>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;background:#1d9e75;color:white;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:600;cursor:pointer;">
+        📂 Datei auswählen
+        <input type="file" accept="*/*" onchange="handleImportFile(this)" style="display:none;">
+      </label>
+    </div>
+    <p style="font-size:12px;color:#888;text-align:center;margin-bottom:8px;">— oder JSON-Text direkt einfügen —</p>
+    <textarea id="importPasteArea" placeholder='JSON hier einfügen…' style="width:100%;height:100px;border:1.5px solid #ddd;border-radius:10px;padding:10px;font-size:13px;font-family:monospace;resize:none;"></textarea>
+    <button onclick="handleImportPaste()" style="width:100%;background:#111;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:600;margin-top:8px;cursor:pointer;">Importieren</button>
+    <div class="import-success" id="importSuccess" style="margin-top:8px;"></div>
+    <div class="import-err" id="importErr" style="margin-top:8px;"></div>
+    <button class="modal-close" onclick="document.getElementById('importModal').style.display='none'" style="margin-top:8px;">Schließen</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
 
 
 const ALL_PRODUCTS = [
@@ -1087,8 +1067,6 @@ const ALL_PRODUCTS = [
 let choices = {};
 let filtered = [...ALL_PRODUCTS];
 let photoData = {};
-
-
 
 
 function filterList() {
@@ -1242,7 +1220,9 @@ function renderDB() {
         <div class="saved-desc">${p.analysis?.beschreibung || ''}</div>
       </div>
       <div style="font-size:18px">✅</div>
-    </div>`).join('');
+    </div>
+<script>
+`).join('');
 }
 
 // ── Export ──────────────────────────────────────────────
@@ -1338,49 +1318,80 @@ function handleImportFile(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      let data = JSON.parse(ev.target.result);
-      // Support kompaktes Format
-      if (data[0] && data[0].e) {
-        data = data.map(p => ({ shopifyId: p.id, ean: p.e, name: p.n, vendor: p.v, shopifyImg: p.i, analysis: { beschreibung: p.d }, addedAt: p.a }));
-      }
-      const db = loadDB();
-      let added = 0, updated = 0;
-      data.forEach(p => {
-        const idx = db.findIndex(e => e.shopifyId === p.shopifyId || e.ean === p.ean);
-        if (idx >= 0) { db[idx] = p; updated++; } else { db.push(p); added++; }
-      });
-      saveDB(db);
-      const s = document.getElementById('importSuccess');
-      s.style.display = 'block';
-      s.textContent = '✓ ' + added + ' neu importiert, ' + updated + ' aktualisiert.';
-      document.getElementById('importErr').style.display = 'none';
-      setTimeout(() => { document.getElementById('importModal').style.display = 'none'; renderDB(); }, 1500);
-    } catch(e) {
-      const err = document.getElementById('importErr');
-      err.style.display = 'block';
-      err.textContent = '✗ Ungültige Datei: ' + e.message;
-    }
-  };
+  reader.onload = ev => { processImportData(ev.target.result); };
   reader.readAsText(file);
+}
+
+function handleImportPaste() {
+  const text = document.getElementById('importPasteArea').value.trim();
+  if (!text) { 
+    document.getElementById('importErr').style.display = 'block';
+    document.getElementById('importErr').textContent = '✗ Bitte JSON-Text einfügen.';
+    return;
+  }
+  processImportData(text);
+}
+
+function processImportData(jsonText) {
+  try {
+    let data = JSON.parse(jsonText);
+    if (data[0] && data[0].e) {
+      data = data.map(p => ({ shopifyId: p.id, ean: p.e, name: p.n, vendor: p.v, shopifyImg: p.i, analysis: { beschreibung: p.d }, addedAt: p.a }));
+    }
+    const db = loadDB();
+    let added = 0, updated = 0;
+    data.forEach(p => {
+      const idx = db.findIndex(e => e.shopifyId === p.shopifyId || e.ean === p.ean);
+      if (idx >= 0) { db[idx] = p; updated++; } else { db.push(p); added++; }
+    });
+    saveDB(db);
+    loadDB(); // Warnung aktualisieren
+    const s = document.getElementById('importSuccess');
+    s.style.display = 'block';
+    s.textContent = '✓ ' + added + ' neu importiert, ' + updated + ' aktualisiert.';
+    document.getElementById('importErr').style.display = 'none';
+    setTimeout(() => { document.getElementById('importModal').style.display = 'none'; renderDB(); }, 1500);
+  } catch(e) {
+    const err = document.getElementById('importErr');
+    err.style.display = 'block';
+    err.textContent = '✗ Ungültige Datei: ' + e.message;
+  }
 }
 
 // ── Init ────────────────────────────────────────────────
 // Beim Start: wenn schon DB vorhanden, direkt zur DB
+// DB window.onload entfernt – wird über Tab-Navigation gesteuert
 
 
+// ── Tab Navigation ──────────────────────────────────────
+// Simpler switchTab that just shows/hides
+function switchTab(tab) {
+  const isCheck = tab === 'check';
+  document.getElementById('tabCheck').classList.toggle('active', isCheck);
+  document.getElementById('tabDb').classList.toggle('active', !isCheck);
 
-// ── App Start ──────────────────────────────────────────
-if (getApiKey()) {
-  loadDB();
-  renderFotoGrid();
-  loadPDF();
-  document.getElementById('screenCheck').style.display = 'block';
-} else {
-  document.getElementById('screenApiKey').style.display = 'block';
+  document.getElementById('screenDb').style.display = isCheck ? 'none' : 'block';
+
+  // For check tab: restore last visible check screen
+  if (isCheck) {
+    // loadDB neu aufrufen damit Warnung und Status aktuell sind
+    loadDB();
+    // Show screenCheck if no other check screen is visible
+    const checkScreens = ['screenCheck','screenResult','screenFinal'];
+    const anyVisible = checkScreens.some(id => {
+      const el = document.getElementById(id);
+      return el && el.style.display !== 'none';
+    });
+    if (!anyVisible) document.getElementById('screenCheck').style.display = 'block';
+  } else {
+    // Hide all check screens when showing db
+    ['screenCheck','screenResult','screenFinal'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el._hiddenByTab = el.style.display !== 'none';
+      if (el) el.style.display = 'none';
+    });
+    renderDB();
+  }
 }
 </script>
-
 </body>
-</html>

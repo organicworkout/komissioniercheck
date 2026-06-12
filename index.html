@@ -193,6 +193,15 @@ input[type=file] { display: none; }
 </style>
 </head>
 <body>
+<div id="debugBar" style="position:fixed;top:0;left:0;right:0;background:#ff0;color:#000;font-size:12px;padding:4px 8px;z-index:9999;font-family:monospace;"></div>
+<script>
+function dbg(msg) {
+  document.getElementById('debugBar').textContent += msg + ' | ';
+}
+dbg('START');
+document.addEventListener('DOMContentLoaded', function() { dbg('DOM_READY'); });
+window.addEventListener('load', function() { dbg('WIN_LOAD'); });
+</script>
 
 <div id="errorOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.97);z-index:9999;padding:20px;overflow:auto;">
   <h2 style="color:#a32d2d;font-size:16px;margin-bottom:10px;">⚠️ Fehler</h2>
@@ -1373,12 +1382,15 @@ function processImportData(jsonText) {
 
 // ── Init ────────────────────────────────────────────────
 function initApp() {
+  dbg("INIT");
   if (getApiKey()) {
+  dbg("HAS_KEY");
     loadDB();
     renderFotoGrid();
     document.getElementById('screenCheck').style.display = 'block';
     loadPDF();
   } else {
+    dbg("NO_KEY");
     document.getElementById('screenApiKey').style.display = 'block';
   }
 }

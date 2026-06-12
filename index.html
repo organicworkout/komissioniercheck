@@ -545,46 +545,53 @@ async function runCheck() {
   const lief = lieferungen[currentLieferIdx];
   const seite = lief.seiten[currentSeiteIdx];
 
-  // Schritt 1: Schein lesen
-  setOverlay('Schein wird gelesen…', lief.lieferNr, 1);
-  let scheinData;
+  setOverlay('Schein & Produkte werden analysiert…', lief.lieferNr, 1);
+
+  // Schein-Text direkt aus PDF extrahieren (kein API Call nötig)
+  let scheinText = '';
   try {
-    const raw = await callClaude([{ role: 'user', content: [
-      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[seite] } },
-      { type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen mit Artikelnummer/SKU, Produktname und Menge. Antworte NUR mit JSON ohne Markdown:\n{"positionen":[{"sku":"...","name":"...","menge":1}]}` }
-    ]}],
-    'Du bist ein Lagerverwaltungssystem. Lies Kommissionierscheine präzise aus. Antworte nur mit validem JSON.', 1000);
-    scheinData = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const page = await pdfDoc.getPage(seite);
+    const tc = await page.getTextContent();
+    scheinText = tc.items.map(i => i.str).join(' ');
+  } catch(e) {}
+
+  // Beide Calls parallel starten
+  const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name} | ${p.analysis?.beschreibung||''}`).join('\n');
+
+  const fotoBlocks = produktFotos.map((src,i) => [
+    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: src.split(',')[1] } },
+    { type: 'text', text: `Foto ${i+1} von ${produktFotos.length}` }
+  ]).flat();
+  fotoBlocks.push({ type: 'text', text: `Erkenne alle Produkte auf allen ${produktFotos.length} Foto${produktFotos.length>1?'s':''}. Zähle zusammen – kein Produkt doppelt. Produktdatenbank:\n\n${dbCtx}\n\nAntworte NUR mit JSON:\n{"erkannt":[{"sku":"...","name":"...","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` });
+
+  // Schein-Call: Text wenn vorhanden, sonst Bild als Fallback
+  const scheinContent = scheinText.length > 50
+    ? [{ type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen mit Produktname und Menge. Text des Scheins:\n\n${scheinText}\n\nAntworte NUR mit JSON ohne Markdown:\n{"positionen":[{"name":"...","menge":1}]}` }]
+    : [
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[seite] } },
+        { type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen. Antworte NUR mit JSON:\n{"positionen":[{"name":"...","menge":1}]}` }
+      ];
+
+  let scheinData, produkteData;
+  try {
+    const [scheinRaw, produkteRaw] = await Promise.all([
+      callClaude([{ role: 'user', content: scheinContent }],
+        'Du bist ein Lagerverwaltungssystem. Lies Kommissionierscheine präzise aus. Antworte nur mit validem JSON.', 1000),
+      callClaude([{ role: 'user', content: fotoBlocks }],
+        'Du bist ein Produkterkennungssystem. Antworte nur mit validem JSON.', 1500)
+    ]);
+    scheinData = JSON.parse(scheinRaw.replace(/```json|```/g,'').trim());
+    produkteData = JSON.parse(produkteRaw.replace(/```json|```/g,'').trim());
   } catch(e) {
     hideOverlay();
-    showPageError('Fehler beim Lesen des Scheins: ' + e.message);
+    showPageError('Fehler beim Analysieren: ' + e.message);
     document.getElementById('btnCheck').disabled = false;
     return;
   }
 
-  // Schritt 2: Produkte erkennen
-  setOverlay('Produkte werden erkannt…', `${produktFotos.length} Foto${produktFotos.length>1?'s':''} werden analysiert`, 2);
-  let produkteData;
-  try {
-    const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name} | ${p.analysis?.beschreibung||''}`).join('\n');
-    const fotoBlocks = produktFotos.map((src,i) => [
-      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: src.split(',')[1] } },
-      { type: 'text', text: `Foto ${i+1} von ${produktFotos.length}` }
-    ]).flat();
-    fotoBlocks.push({ type: 'text', text: `Erkenne alle Produkte auf allen ${produktFotos.length} Foto${produktFotos.length>1?'s':''}. Zähle zusammen – kein Produkt doppelt. Produktdatenbank:\n\n${dbCtx}\n\nAntworte NUR mit JSON:\n{"erkannt":[{"sku":"...","name":"...","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` });
-    const raw = await callClaude([{ role: 'user', content: fotoBlocks }],
-      'Du bist ein Produkterkennungssystem. Antworte nur mit validem JSON.', 1500);
-    produkteData = JSON.parse(raw.replace(/```json|```/g,'').trim());
-  } catch(e) {
-    hideOverlay();
-    showPageError('Fehler beim Erkennen der Produkte: ' + e.message);
-    document.getElementById('btnCheck').disabled = false;
-    return;
-  }
-
-  // Schritt 3: Abgleich
-  setOverlay('Abgleich…', 'Soll-Ist-Vergleich', 3);
-  await new Promise(r => setTimeout(r, 400));
+  // Abgleich
+  setOverlay('Abgleich…', 'Soll-Ist-Vergleich', 2);
+  await new Promise(r => setTimeout(r, 300));
   hideOverlay();
 
   const results = doCompare(scheinData.positionen||[], produkteData.erkannt||[]);

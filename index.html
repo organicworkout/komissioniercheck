@@ -194,6 +194,23 @@ input[type=file] { display: none; }
 </head>
 <body>
 
+<div id="errorOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.97);z-index:9999;padding:20px;overflow:auto;">
+  <h2 style="color:#a32d2d;font-size:16px;margin-bottom:10px;">⚠️ Fehler</h2>
+  <pre id="errorText" style="font-size:11px;white-space:pre-wrap;color:#333;background:#f5f5f5;padding:12px;border-radius:8px;"></pre>
+  <button onclick="document.getElementById('errorOverlay').style.display='none'" style="margin-top:12px;padding:10px 20px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;">Schließen</button>
+</div>
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  document.getElementById('errorText').textContent = msg + '\nDatei: ' + src + '\nZeile: ' + line + (err ? '\n' + err.stack : '');
+  document.getElementById('errorOverlay').style.display = 'block';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  document.getElementById('errorText').textContent = 'Promise-Fehler:\n' + (e.reason?.stack || e.reason || e);
+  document.getElementById('errorOverlay').style.display = 'block';
+});
+</script>
+
+
 <!-- Screen: API Key -->
 <div id="screenApiKey" style="display:none">
   <div class="header">

@@ -1009,8 +1009,7 @@ function resetApiKey() { localStorage.removeItem(API_KEY_STORAGE); location.relo
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-
-
+dbg("BLOCK4_START");
 const ALL_PRODUCTS = [
   {id:"gid://shopify/Product/8271134556424",title:"Cookie Dough NomNoms Protein Bites",sku:"SNVB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_d99bfd5c-cc57-44a4-a86b-6881d70d3692.png?v=1779718060"},
   {id:"gid://shopify/Product/8316068102408",title:"Crunchy Peanut Chocolate NomNoms",sku:"SNSB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Neuebitestitel.jpg?v=1746945735"},
@@ -1080,6 +1079,7 @@ const ALL_PRODUCTS = [
   {id:"gid://shopify/Product/10768553378056",title:"Bio Chocolate & Fruits Crunch Banana",sku:"SEDB-100-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_3_4665b353-9649-4a20-910b-161d57ac1f59.jpg?v=1773043258"},
   {id:"gid://shopify/Product/10768603644168",title:"Bio Chocolate & Fruits Crunch Strawberry",sku:"SEDE-100-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_3.jpg?v=1772460090"}
 ];
+dbg("PRODUCTS_OK");
 
 let choices = {};
 let filtered = [...ALL_PRODUCTS];

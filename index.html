@@ -972,17 +972,21 @@ loadPDF();
 
 <!-- Import Modal -->
 <div class="modal-overlay" id="importModal" style="display:none" onclick="closeImport(event)">
-  <div class="modal">
+  <div class="modal" onclick="event.stopPropagation()">
     <h2>Datenbank importieren</h2>
-    <p>Lade eine exportierte JSON-Datei hoch oder scanne den QR-Code mit der Kamera-App und öffne den Link.</p>
-    <div class="import-area" onclick="document.getElementById('importFile').click()">
-      <p>📂 JSON-Datei auswählen</p>
-      <p style="font-size:12px;color:#888;">Tippe hier um die Datei auszuwählen</p>
-      <input type="file" id="importFile" accept=".json,application/json,text/plain,*/*" onchange="handleImportFile(this)" style="display:block;opacity:0;position:absolute;width:100%;height:100%;top:0;left:0;cursor:pointer;">
+    <p style="font-size:13px;color:#666;margin-bottom:12px;">JSON-Datei auswählen oder Inhalt einfügen:</p>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;background:#1d9e75;color:white;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:600;cursor:pointer;">
+        📂 Datei auswählen
+        <input type="file" accept="*/*" onchange="handleImportFile(this)" style="display:none;">
+      </label>
     </div>
-    <div class="import-success" id="importSuccess"></div>
-    <div class="import-err" id="importErr"></div>
-    <button class="modal-close" onclick="document.getElementById('importModal').style.display='none'">Schließen</button>
+    <p style="font-size:12px;color:#888;text-align:center;margin-bottom:8px;">— oder JSON-Text direkt einfügen —</p>
+    <textarea id="importPasteArea" placeholder='JSON hier einfügen…' style="width:100%;height:100px;border:1.5px solid #ddd;border-radius:10px;padding:10px;font-size:13px;font-family:monospace;resize:none;"></textarea>
+    <button onclick="handleImportPaste()" style="width:100%;background:#111;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:600;margin-top:8px;cursor:pointer;">Importieren</button>
+    <div class="import-success" id="importSuccess" style="margin-top:8px;"></div>
+    <div class="import-err" id="importErr" style="margin-top:8px;"></div>
+    <button class="modal-close" onclick="document.getElementById('importModal').style.display='none'" style="margin-top:8px;">Schließen</button>
   </div>
 </div>
 
@@ -1314,32 +1318,44 @@ function handleImportFile(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      let data = JSON.parse(ev.target.result);
-      // Support kompaktes Format
-      if (data[0] && data[0].e) {
-        data = data.map(p => ({ shopifyId: p.id, ean: p.e, name: p.n, vendor: p.v, shopifyImg: p.i, analysis: { beschreibung: p.d }, addedAt: p.a }));
-      }
-      const db = loadDB();
-      let added = 0, updated = 0;
-      data.forEach(p => {
-        const idx = db.findIndex(e => e.shopifyId === p.shopifyId || e.ean === p.ean);
-        if (idx >= 0) { db[idx] = p; updated++; } else { db.push(p); added++; }
-      });
-      saveDB(db);
-      const s = document.getElementById('importSuccess');
-      s.style.display = 'block';
-      s.textContent = '✓ ' + added + ' neu importiert, ' + updated + ' aktualisiert.';
-      document.getElementById('importErr').style.display = 'none';
-      setTimeout(() => { document.getElementById('importModal').style.display = 'none'; renderDB(); }, 1500);
-    } catch(e) {
-      const err = document.getElementById('importErr');
-      err.style.display = 'block';
-      err.textContent = '✗ Ungültige Datei: ' + e.message;
-    }
-  };
+  reader.onload = ev => { processImportData(ev.target.result); };
   reader.readAsText(file);
+}
+
+function handleImportPaste() {
+  const text = document.getElementById('importPasteArea').value.trim();
+  if (!text) { 
+    document.getElementById('importErr').style.display = 'block';
+    document.getElementById('importErr').textContent = '✗ Bitte JSON-Text einfügen.';
+    return;
+  }
+  processImportData(text);
+}
+
+function processImportData(jsonText) {
+  try {
+    let data = JSON.parse(jsonText);
+    if (data[0] && data[0].e) {
+      data = data.map(p => ({ shopifyId: p.id, ean: p.e, name: p.n, vendor: p.v, shopifyImg: p.i, analysis: { beschreibung: p.d }, addedAt: p.a }));
+    }
+    const db = loadDB();
+    let added = 0, updated = 0;
+    data.forEach(p => {
+      const idx = db.findIndex(e => e.shopifyId === p.shopifyId || e.ean === p.ean);
+      if (idx >= 0) { db[idx] = p; updated++; } else { db.push(p); added++; }
+    });
+    saveDB(db);
+    loadDB(); // Warnung aktualisieren
+    const s = document.getElementById('importSuccess');
+    s.style.display = 'block';
+    s.textContent = '✓ ' + added + ' neu importiert, ' + updated + ' aktualisiert.';
+    document.getElementById('importErr').style.display = 'none';
+    setTimeout(() => { document.getElementById('importModal').style.display = 'none'; renderDB(); }, 1500);
+  } catch(e) {
+    const err = document.getElementById('importErr');
+    err.style.display = 'block';
+    err.textContent = '✗ Ungültige Datei: ' + e.message;
+  }
 }
 
 // ── Init ────────────────────────────────────────────────

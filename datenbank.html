@@ -437,17 +437,31 @@ function showExportModal() {
     drawDownloadFallback(canvas, url, db.length);
   }
 
-  // Download-Link immer anzeigen
-  let dlLink = document.getElementById('exportDownloadLink');
-  if (!dlLink) {
-    dlLink = document.createElement('a');
-    dlLink.id = 'exportDownloadLink';
-    dlLink.style.cssText = 'display:block;text-align:center;margin:8px 0;font-size:14px;color:#1d9e75;font-weight:600;';
-    document.getElementById('qrCanvas').after(dlLink);
+  // Export-Button – Teilen auf iOS, Download auf Desktop
+  const filename = 'produkt-db-' + new Date().toISOString().slice(0,10) + '.json';
+  let dlBtn = document.getElementById('exportDownloadLink');
+  if (!dlBtn) {
+    dlBtn = document.createElement('button');
+    dlBtn.id = 'exportDownloadLink';
+    dlBtn.style.cssText = 'display:block;width:100%;margin:12px 0 4px;padding:12px;background:#1d9e75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;';
+    document.getElementById('qrCanvas').after(dlBtn);
   }
-  dlLink.href = url;
-  dlLink.download = 'produkt-db-' + new Date().toISOString().slice(0,10) + '.json';
-  dlLink.textContent = '⬇ JSON-Datei herunterladen';
+  dlBtn.textContent = '📤 Datenbank teilen / herunterladen';
+  dlBtn.onclick = async () => {
+    const file = new File([blob], filename, { type: 'application/json' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      // iOS Share Sheet – AirDrop, Dateien, etc.
+      try {
+        await navigator.share({ files: [file], title: 'Produktdatenbank' });
+      } catch(e) { if (e.name !== 'AbortError') alert('Teilen fehlgeschlagen: ' + e.message); }
+    } else {
+      // Desktop Fallback: normaler Download
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(() => document.body.removeChild(a), 1000);
+    }
+  };
 }
 
 function drawDownloadFallback(canvas, url, count) {

@@ -194,30 +194,14 @@ input[type=file] { display: none; }
 </head>
 <body>
 <div id="debugBar" style="position:fixed;top:0;left:0;right:0;background:#ff0;color:#000;font-size:12px;padding:4px 8px;z-index:9999;font-family:monospace;"></div>
-<script>
-function dbg(msg) {
-  document.getElementById('debugBar').textContent += msg + ' | ';
-}
-dbg('START');
-document.addEventListener('DOMContentLoaded', function() { dbg('DOM_READY'); });
-window.addEventListener('load', function() { dbg('WIN_LOAD'); });
-</script>
+
 
 <div id="errorOverlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.97);z-index:9999;padding:20px;overflow:auto;">
   <h2 style="color:#a32d2d;font-size:16px;margin-bottom:10px;">⚠️ Fehler</h2>
   <pre id="errorText" style="font-size:11px;white-space:pre-wrap;color:#333;background:#f5f5f5;padding:12px;border-radius:8px;"></pre>
   <button onclick="document.getElementById('errorOverlay').style.display='none'" style="margin-top:12px;padding:10px 20px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;">Schließen</button>
 </div>
-<script>
-window.onerror = function(msg, src, line, col, err) {
-  document.getElementById('errorText').textContent = msg + '\nDatei: ' + src + '\nZeile: ' + line + (err ? '\n' + err.stack : '');
-  document.getElementById('errorOverlay').style.display = 'block';
-};
-window.addEventListener('unhandledrejection', function(e) {
-  document.getElementById('errorText').textContent = 'Promise-Fehler:\n' + (e.reason?.stack || e.reason || e);
-  document.getElementById('errorOverlay').style.display = 'block';
-});
-</script>
+
 
 
 <!-- Screen: API Key -->
@@ -341,7 +325,134 @@ window.addEventListener('unhandledrejection', function(e) {
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+
+<!-- Tab Bar -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" id="tabCheck" onclick="switchTab('check')">
+    <span class="tab-icon">📋</span>Check
+  </button>
+  <button class="tab-btn" id="tabDb" onclick="switchTab('db')">
+    <span class="tab-icon">📦</span>Datenbank
+  </button>
+</div>
+
+<!-- Screen: Datenbank -->
+<div id="screenDb">
+<!-- Phase 1: Auswahl -->
+<div id="appPhase1">
+  <div class="header">
+    <h1>Produkt-Datenbank</h1>
+    <p>Welche Produkte sollen aufgenommen werden?</p>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progFill1" style="width:0%"></div></div>
+  <div class="toolbar">
+    <input type="search" id="searchInput" placeholder="Suchen…" oninput="filterList()">
+    <select id="vendorFilter" onchange="filterList()">
+      <option value="">Alle</option>
+      <option value="Organic Workout">OW</option>
+      <option value="Green Organic">GO</option>
+      <option value="OW">OW²</option>
+    </select>
+  </div>
+  <div class="count-bar">
+    <span id="countInfo">0 Produkte</span>
+    <span class="sel-pill" id="selPill">0 ausgewählt</span>
+  </div>
+  <div class="list" id="productList"></div>
+  <div class="bottom-bar">
+    <button class="btn-secondary" onclick="showDBPhase()">Datenbank</button>
+    <button class="btn-primary" id="btn1" disabled onclick="goPhase2()">Weiter → Fotos machen</button>
+  </div>
+</div>
+
+<!-- Phase 2: Fotos -->
+<div id="appPhase2" style="display:none">
+  <div class="header">
+    <h1>Fotos machen</h1>
+    <p id="phase2Info">0 von 0 fotografiert</p>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progFill2" style="width:0%"></div></div>
+  <div class="phase2" id="photoCards"></div>
+  <div class="bottom-bar">
+    <button class="btn-secondary" onclick="goPhase1()">← Zurück</button>
+    <button class="btn-primary" id="btnSave" onclick="saveAll()">Speichern</button>
+  </div>
+</div>
+
+<!-- Phase 3: Datenbank -->
+<div id="appPhase3" style="display:none">
+  <div class="header">
+    <h1>Datenbank</h1>
+    <p id="dbInfo">0 Produkte gespeichert</p>
+  </div>
+  <div class="phase3">
+    <div class="db-actions">
+      <button class="export-btn" onclick="showExportModal()">📤 Exportieren (QR)</button>
+      <button class="import-btn" onclick="showImportModal()">📥 Importieren</button>
+    </div>
+    <div id="dbView"></div>
+  </div>
+  <div class="bottom-bar">
+    <button class="btn-primary" onclick="goPhase1()">+ Weitere Produkte hinzufügen</button>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal" style="display:none" onclick="closeExport(event)">
+  <div class="modal">
+    <h2>Datenbank exportieren</h2>
+    <p>Scanne diesen QR-Code mit dem neuen Handy, um die Datenbank zu übertragen.</p>
+    <canvas id="qrCanvas" width="220" height="220"></canvas>
+    <p id="qrInfo" style="font-size:11px; color:#aaa;"></p>
+    <button class="modal-close" onclick="document.getElementById('exportModal').style.display='none'">Schließen</button>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal" style="display:none" onclick="closeImport(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>Datenbank importieren</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:12px;">JSON-Datei auswählen oder Inhalt einfügen:</p>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;background:#1d9e75;color:white;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:600;cursor:pointer;">
+        📂 Datei auswählen
+        <input type="file" accept="*/*" onchange="handleImportFile(this)" style="display:none;">
+      </label>
+    </div>
+    <p style="font-size:12px;color:#888;text-align:center;margin-bottom:8px;">— oder JSON-Text direkt einfügen —</p>
+    <textarea id="importPasteArea" placeholder='JSON hier einfügen…' style="width:100%;height:100px;border:1.5px solid #ddd;border-radius:10px;padding:10px;font-size:13px;font-family:monospace;resize:none;"></textarea>
+    <button onclick="handleImportPaste()" style="width:100%;background:#111;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:600;margin-top:8px;cursor:pointer;">Importieren</button>
+    <div class="import-success" id="importSuccess" style="margin-top:8px;"></div>
+    <div class="import-err" id="importErr" style="margin-top:8px;"></div>
+    <button class="modal-close" onclick="document.getElementById('importModal').style.display='none'" style="margin-top:8px;">Schließen</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <script>
+
+function dbg(msg) {
+  document.getElementById('debugBar').textContent += msg + ' | ';
+}
+dbg('START');
+document.addEventListener('DOMContentLoaded', function() { dbg('DOM_READY'); });
+window.addEventListener('load', function() { dbg('WIN_LOAD'); });
+
+
+
+window.onerror = function(msg, src, line, col, err) {
+  document.getElementById('errorText').textContent = msg + '\nDatei: ' + src + '\nZeile: ' + line + (err ? '\n' + err.stack : '');
+  document.getElementById('errorOverlay').style.display = 'block';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  document.getElementById('errorText').textContent = 'Promise-Fehler:\n' + (e.reason?.stack || e.reason || e);
+  document.getElementById('errorOverlay').style.display = 'block';
+});
+
+
+
 const DROPBOX_APP_KEY = 'nn1unj4dffy06gv';
 const DROPBOX_APP_SECRET = 'ridyb6ymk19p2hg';
 const DROPBOX_REFRESH_TOKEN = '4DoFgQlabhQAAAAAAAAAAf_hPAU4QjHqY8d3RijGiDEiXzR9o_5buqIuLrOvDnV9';
@@ -903,112 +1014,9 @@ function saveKeyAndStart() {
 function resetApiKey() { localStorage.removeItem(API_KEY_STORAGE); location.reload(); }
 
 // Init wird am Ende der Seite ausgeführt
-</script>
 
-<!-- Tab Bar -->
-<div class="tab-bar" id="tabBar">
-  <button class="tab-btn active" id="tabCheck" onclick="switchTab('check')">
-    <span class="tab-icon">📋</span>Check
-  </button>
-  <button class="tab-btn" id="tabDb" onclick="switchTab('db')">
-    <span class="tab-icon">📦</span>Datenbank
-  </button>
-</div>
 
-<!-- Screen: Datenbank -->
-<div id="screenDb">
-<!-- Phase 1: Auswahl -->
-<div id="appPhase1">
-  <div class="header">
-    <h1>Produkt-Datenbank</h1>
-    <p>Welche Produkte sollen aufgenommen werden?</p>
-  </div>
-  <div class="progress-bar"><div class="progress-fill" id="progFill1" style="width:0%"></div></div>
-  <div class="toolbar">
-    <input type="search" id="searchInput" placeholder="Suchen…" oninput="filterList()">
-    <select id="vendorFilter" onchange="filterList()">
-      <option value="">Alle</option>
-      <option value="Organic Workout">OW</option>
-      <option value="Green Organic">GO</option>
-      <option value="OW">OW²</option>
-    </select>
-  </div>
-  <div class="count-bar">
-    <span id="countInfo">0 Produkte</span>
-    <span class="sel-pill" id="selPill">0 ausgewählt</span>
-  </div>
-  <div class="list" id="productList"></div>
-  <div class="bottom-bar">
-    <button class="btn-secondary" onclick="showDBPhase()">Datenbank</button>
-    <button class="btn-primary" id="btn1" disabled onclick="goPhase2()">Weiter → Fotos machen</button>
-  </div>
-</div>
 
-<!-- Phase 2: Fotos -->
-<div id="appPhase2" style="display:none">
-  <div class="header">
-    <h1>Fotos machen</h1>
-    <p id="phase2Info">0 von 0 fotografiert</p>
-  </div>
-  <div class="progress-bar"><div class="progress-fill" id="progFill2" style="width:0%"></div></div>
-  <div class="phase2" id="photoCards"></div>
-  <div class="bottom-bar">
-    <button class="btn-secondary" onclick="goPhase1()">← Zurück</button>
-    <button class="btn-primary" id="btnSave" onclick="saveAll()">Speichern</button>
-  </div>
-</div>
-
-<!-- Phase 3: Datenbank -->
-<div id="appPhase3" style="display:none">
-  <div class="header">
-    <h1>Datenbank</h1>
-    <p id="dbInfo">0 Produkte gespeichert</p>
-  </div>
-  <div class="phase3">
-    <div class="db-actions">
-      <button class="export-btn" onclick="showExportModal()">📤 Exportieren (QR)</button>
-      <button class="import-btn" onclick="showImportModal()">📥 Importieren</button>
-    </div>
-    <div id="dbView"></div>
-  </div>
-  <div class="bottom-bar">
-    <button class="btn-primary" onclick="goPhase1()">+ Weitere Produkte hinzufügen</button>
-  </div>
-</div>
-
-<!-- Export Modal -->
-<div class="modal-overlay" id="exportModal" style="display:none" onclick="closeExport(event)">
-  <div class="modal">
-    <h2>Datenbank exportieren</h2>
-    <p>Scanne diesen QR-Code mit dem neuen Handy, um die Datenbank zu übertragen.</p>
-    <canvas id="qrCanvas" width="220" height="220"></canvas>
-    <p id="qrInfo" style="font-size:11px; color:#aaa;"></p>
-    <button class="modal-close" onclick="document.getElementById('exportModal').style.display='none'">Schließen</button>
-  </div>
-</div>
-
-<!-- Import Modal -->
-<div class="modal-overlay" id="importModal" style="display:none" onclick="closeImport(event)">
-  <div class="modal" onclick="event.stopPropagation()">
-    <h2>Datenbank importieren</h2>
-    <p style="font-size:13px;color:#666;margin-bottom:12px;">JSON-Datei auswählen oder Inhalt einfügen:</p>
-    <div style="margin-bottom:12px;">
-      <label style="display:block;background:#1d9e75;color:white;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:600;cursor:pointer;">
-        📂 Datei auswählen
-        <input type="file" accept="*/*" onchange="handleImportFile(this)" style="display:none;">
-      </label>
-    </div>
-    <p style="font-size:12px;color:#888;text-align:center;margin-bottom:8px;">— oder JSON-Text direkt einfügen —</p>
-    <textarea id="importPasteArea" placeholder='JSON hier einfügen…' style="width:100%;height:100px;border:1.5px solid #ddd;border-radius:10px;padding:10px;font-size:13px;font-family:monospace;resize:none;"></textarea>
-    <button onclick="handleImportPaste()" style="width:100%;background:#111;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:600;margin-top:8px;cursor:pointer;">Importieren</button>
-    <div class="import-success" id="importSuccess" style="margin-top:8px;"></div>
-    <div class="import-err" id="importErr" style="margin-top:8px;"></div>
-    <button class="modal-close" onclick="document.getElementById('importModal').style.display='none'" style="margin-top:8px;">Schließen</button>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
 dbg("BLOCK4_START");
 const ALL_PRODUCTS = [
   {id:"gid://shopify/Product/8271134556424",title:"Cookie Dough NomNoms Protein Bites",sku:"SNVB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_d99bfd5c-cc57-44a4-a86b-6881d70d3692.png?v=1779718060"},
@@ -1393,8 +1401,7 @@ function initApp() {
     document.getElementById('screenApiKey').style.display = 'block';
   }
 }
-// Direkt aufrufen da DOMContentLoaded bereits gefeuert hat
-initApp();
+// initApp wird am Ende aufgerufen
 
 // ── Tab Navigation ──────────────────────────────────────
 // Simpler switchTab that just shows/hides
@@ -1426,5 +1433,7 @@ function switchTab(tab) {
     renderDB();
   }
 }
+
+initApp();
 </script>
 </body>

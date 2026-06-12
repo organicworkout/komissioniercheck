@@ -232,8 +232,28 @@ input[type=file] { display: none; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-const DROPBOX_TOKEN = 'sl.u.AGhiOE6OHL2t7iy9n9UeCjh04wEd9fybFoPwoxSa7QLru4fEXRVbUbzxTv68uErASYnx80QSwUEBExaGPouKMqzlkFvFOiiX3Uy6kvkSAsYh6n73bbnelJrMRd_WebpCiNpe_Yjn67OX7SqNYrmdSwPVzrYLxFgyWjH520owoGbz5iiNJIqElvATRwDuIC4z0a9XCTLb3SJp8CusgmSmM-VUxW2Jad1q7xVkG7aJBZcr4CyF5f7z9X1x3EP3BmDk4eJno8LoOEIZpEASbJNTeHx6JOvN3Ov8KS2Ysg4uSOkakm-JdY9Y1yyQwW-XfRU_FAVUA7a1mqwGLwfMzKM0oQz6JLL9HoPyUQqJjOJ13rsnM9D1cdw7tlTZqkQ_FT8MonzRCvW_qGookFzR5Qb4lhH4wjPvY0SvGCnMSME4PHZ-veqkpriDhSCWcPLByUJVAACMt-FLk3IRlejeoLxa8FZFgP7SOu48L1aPmu8bcHuAPbvW8l237YjRTURuGeg1yG-UabaqcyXjeOlhajkCj9LqHu0a19SgBDhc0iLrDBlMxJasyURGIxf0Q6i_q6yE3xwijZwnZPjP_WEFKRtimObkchp0uRxEp9fhFxqj1XTO_tJeehiJZDiUrlRsVHIP7M55vx-JcqwoBAgN-IwmC7OEW1CeieI2_ZWE8XInHMQaw229_YRh2lYS-ZG1Ool0OBNdDBdkXcLHBSJ2GgSj4FJlNNMH_qd3N4YPDvRhW4roDa6bhhQeBSmw3q13qXG6iOo1oaLxJDhUk4apJAvu_saaYKwzb3odn-XUG8l1VJ1kufgYC0gCqDrw4SeVsbdea5tvE_WYkGquNB-CqHCb-KWYkMzjKr3CMX8W_gbqu4zExMOIZoG7KR-0ZsVedKeid8FqMa2PLFc0bCdQwUwTKGx_axam2AkjgzBqL2_IleQj9Z9MXeC6zkTTVOmEjG8rKYZwFWVvaoPvmaEz2XCLYk6J7H7tLLXAo6hjD43TPvxJn9gYJ-O0SLKm32jOoDjE4gxsnCYCA5FXkqTsmsaxz_WxIpLX53zgOpyFSqsUFwbtRv5bNxcZ-zwU4oa2olo6vvGb_w3vl0l9K_nUN-i1SKzMYi-0bd4gBQtYY9YOhDIQ0G_J60ND2Y-BXlOPTFjOvecZrk14dJ_4P-uIAaUZkg0YSq24m9bbmckMF2g6a132FP0dNY9zv97L6TamEY65hEgQvpYZsptt3DX2vBzLJln5X8bud0SdOaQU52XlznchSqtPeI2xTO3kB_cjgf6u_wUJkmr0kuyQ5C55mljp2YnE';
+const DROPBOX_APP_KEY = 'nn1unj4dffy06gv';
+const DROPBOX_APP_SECRET = 'ridyb6ymk19p2hg';
+const DROPBOX_REFRESH_TOKEN = '4DoFgQlabhQAAAAAAAAAAf_hPAU4QjHqY8d3RijGiDEiXzR9o_5buqIuLrOvDnV9';
 const DROPBOX_FOLDER = '/00_Organic Workout/Versand/10_briefkasten';
+let dropboxAccessToken = null;
+
+async function getDropboxToken() {
+  // Immer frischen Token holen via Refresh Token
+  const resp = await fetch('https://api.dropbox.com/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: DROPBOX_REFRESH_TOKEN,
+      client_id: DROPBOX_APP_KEY,
+      client_secret: DROPBOX_APP_SECRET
+    })
+  });
+  const data = await resp.json();
+  dropboxAccessToken = data.access_token;
+  return dropboxAccessToken;
+}
 const DB_KEY = 'produkt_db_v2';
 const API_KEY_STORAGE = 'ow_claude_api_key';
 const MAX_FOTOS = 6;
@@ -275,10 +295,13 @@ async function loadPDF() {
   checkReady();
 
   try {
+    // Dropbox Token holen (Refresh Token – läuft nie ab)
+    await getDropboxToken();
+
     // Dropbox API: erste PDF im Ordner finden und laden
     const listResp = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + DROPBOX_TOKEN, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': 'Bearer ' + dropboxAccessToken, 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: DROPBOX_FOLDER, recursive: false })
     });
     const listData = await listResp.json();
@@ -288,7 +311,7 @@ async function loadPDF() {
     const dlResp = await fetch('https://content.dropboxapi.com/2/files/download', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + DROPBOX_TOKEN,
+        'Authorization': 'Bearer ' + dropboxAccessToken,
         'Dropbox-API-Arg': JSON.stringify({ path: pdfFile.path_lower })
       }
     });

@@ -1394,7 +1394,8 @@ function initApp() {
     document.getElementById('screenApiKey').style.display = 'block';
   }
 }
-document.addEventListener('DOMContentLoaded', initApp);
+// Direkt aufrufen da DOMContentLoaded bereits gefeuert hat
+initApp();
 
 // ── Tab Navigation ──────────────────────────────────────
 // Simpler switchTab that just shows/hides

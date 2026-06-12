@@ -893,16 +893,7 @@ function saveKeyAndStart() {
 
 function resetApiKey() { localStorage.removeItem(API_KEY_STORAGE); location.reload(); }
 
-// ── Init ────────────────────────────────────────────────
-if (getApiKey()) {
-  loadDB();
-  renderFotoGrid();
-  loadPDF();
-  document.getElementById('screenCheck').style.display = 'block';
-} else {
-  document.getElementById('screenApiKey').style.display = 'block';
-}
-loadPDF();
+// Init wird am Ende der Seite ausgeführt
 </script>
 
 <!-- Tab Bar -->
@@ -1379,6 +1370,19 @@ function processImportData(jsonText) {
 // Beim Start: wenn schon DB vorhanden, direkt zur DB
 // DB window.onload entfernt – wird über Tab-Navigation gesteuert
 
+
+// ── Init ────────────────────────────────────────────────
+function initApp() {
+  if (getApiKey()) {
+    loadDB();
+    renderFotoGrid();
+    document.getElementById('screenCheck').style.display = 'block';
+    loadPDF();
+  } else {
+    document.getElementById('screenApiKey').style.display = 'block';
+  }
+}
+document.addEventListener('DOMContentLoaded', initApp);
 
 // ── Tab Navigation ──────────────────────────────────────
 // Simpler switchTab that just shows/hides

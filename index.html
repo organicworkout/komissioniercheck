@@ -140,7 +140,10 @@ input[type=file] { display: none; }
       <h1>Kommissionier-Check</h1>
       <p id="dbStatus">Lade…</p>
     </div>
-    <div class="page-pill" id="pagePill">–</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="resetApiKey()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;" title="API Key ändern">🔑</button>
+      <div class="page-pill" id="pagePill">–</div>
+    </div>
   </div>
   <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
 
@@ -260,6 +263,15 @@ const MAX_FOTOS = 6;
 
 const HARDCODED_KEY = ''; // Optional: API Key hier eintragen
 function getApiKey() { return localStorage.getItem(API_KEY_STORAGE) || HARDCODED_KEY || ''; }
+function resetApiKey() {
+  if (confirm('API Key zurücksetzen und neu eingeben?')) {
+    localStorage.removeItem(API_KEY_STORAGE);
+    document.getElementById('screenCheck').style.display = 'none';
+    document.getElementById('screenResult').style.display = 'none';
+    document.getElementById('screenFinal').style.display = 'none';
+    document.getElementById('screenApiKey').style.display = 'block';
+  }
+}
 function saveApiKey(k) { localStorage.setItem(API_KEY_STORAGE, k.trim()); }
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 

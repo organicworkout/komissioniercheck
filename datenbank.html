@@ -538,17 +538,6 @@ function handleImportFile(input) {
   reader.onload = ev => { processImportData(ev.target.result); input.value = ''; };
   reader.readAsText(file);
 }
-function handleImportFile_OLD(input_UNUSED) {
-  const file = input_UNUSED.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      let data = JSON.parse(ev.target.result);
-      // Support kompaktes Format
-      if (data[0] && data[0].e) {
-        data = data.map(p => ({ shopifyId: p.id, ean: p.e, name: p.n, vendor: p.v, shopifyImg: p.i, analysis: { beschreibung: p.d }, addedAt: p.a }));
-      }
       const db = loadDB();
       let added = 0, updated = 0;
       data.forEach(p => {

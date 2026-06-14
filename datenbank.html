@@ -264,13 +264,18 @@ function renderList() {
   document.getElementById('selPill').textContent = yesCount + ' ausgewählt';
   document.getElementById('btn1').disabled = yesCount === 0;
   document.getElementById('progFill1').style.width = (ALL_PRODUCTS.length ? Math.round(yesCount / ALL_PRODUCTS.length * 100) : 0) + '%';
+  const savedDB = loadDB();
   document.getElementById('productList').innerHTML = filtered.map(p => {
     const c = choices[p.id];
+    const inDB = savedDB.find(e => e.shopifyId === p.id);
+    const hasFoto = inDB && inDB.analysis && inDB.analysis.beschreibung;
+    const fotoStatus = hasFoto ? '<span style="color:#1d9e75;font-size:11px;">📷 ✅ Foto vorhanden</span>' : '<span style="color:#e07b00;font-size:11px;">📷 ❌ Kein Foto</span>';
     return `<div class="product-row ${c === true ? 'selected' : ''}">
       <img class="thumb" src="${p.img}" onerror="this.style.display='none'" alt="">
       <div class="prod-info">
         <div class="prod-name">${p.title}</div>
         <div class="prod-sku">${p.sku}</div>
+        ${fotoStatus}
       </div>
       <div class="toggle">
         <button class="btn-ja ${c === true ? 'active' : ''}" onclick="setChoice('${p.id}',true)">Ja</button>

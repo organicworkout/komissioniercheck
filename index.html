@@ -19,7 +19,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .progress-bar { height: 3px; background: #e5e5e5; }
 .progress-fill { height: 3px; background: #1d9e75; transition: width 0.4s; }
 
-.content { padding: 16px 16px 150px; }
+.content { padding: 16px 16px 130px; }
 
 /* PDF Karte */
 .pdf-card { background: #fff; border-radius: 16px; overflow: hidden; margin-bottom: 16px; border: 1px solid #eee; }
@@ -62,7 +62,7 @@ input[type=file] { display: none; }
 .db-warning { background: #faeeda; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #ba7517; margin-bottom: 14px; }
 
 /* Bottom */
-.bottom-bar { position: fixed; bottom: 60px; left: 0; right: 0; padding: 12px 16px; background: #fff; border-top: 1px solid #e5e5e5; display: flex; gap: 8px; z-index: 900; }
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #e5e5e5; display: flex; gap: 8px; }
 .btn-primary { flex: 1; background: #111; color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; }
 .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
 .btn-secondary { background: #f5f5f5; color: #111; border: 1.5px solid #ddd; border-radius: 14px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -101,7 +101,7 @@ input[type=file] { display: none; }
 .raw-body { margin-top: 10px; display: none; }
 .raw-body.open { display: block; }
 
-.analyzing-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.93); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.analyzing-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.93); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
 .analyzing-overlay h2 { font-size: 17px; font-weight: 700; }
 .analyzing-overlay p { font-size: 13px; color: #888; text-align: center; padding: 0 28px; }
 .spinner { width: 42px; height: 42px; border: 4px solid #eee; border-top-color: #1d9e75; border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -109,87 +109,6 @@ input[type=file] { display: none; }
 .step-dots { display: flex; gap: 8px; }
 .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.3s; }
 .step-dot.active { background: #1d9e75; }
-
-/* Tab Navigation */
-.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e5e5e5; display: flex; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
-.tab-btn { flex: 1; padding: 10px 0 8px; border: none; background: none; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; color: #999; font-size: 10px; font-weight: 500; }
-.tab-btn.active { color: #1d9e75; }
-.tab-btn .tab-icon { font-size: 22px; }
-#screenDb { display: none; }
-#screenDb.active { display: block; }
-
-/* DB App CSS */
-
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #111; min-height: 100vh; }
-.header { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 14px 16px; position: sticky; top: 0; z-index: 100; }
-.header h1 { font-size: 17px; font-weight: 600; }
-.header p { font-size: 12px; color: #888; margin-top: 2px; }
-.progress-bar { height: 3px; background: #e5e5e5; }
-.progress-fill { height: 3px; background: #1d9e75; transition: width 0.3s; }
-.toolbar { display: flex; gap: 8px; padding: 12px 16px; background: #fff; border-bottom: 1px solid #e5e5e5; }
-.toolbar input { flex: 1; border: 1px solid #ddd; border-radius: 10px; padding: 9px 12px; font-size: 15px; background: #f5f5f5; }
-.toolbar select { border: 1px solid #ddd; border-radius: 10px; padding: 9px 10px; font-size: 13px; background: #f5f5f5; }
-.count-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: #f5f5f5; }
-.count-bar span { font-size: 12px; color: #888; }
-.sel-pill { background: #e6f4ef; color: #1d9e75; border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; }
-.list { padding: 0 0 100px; }
-.product-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fff; border-bottom: 1px solid #f0f0f0; }
-.product-row.selected { background: #f0faf6; }
-.thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 10px; background: #eee; flex-shrink: 0; }
-.prod-info { flex: 1; min-width: 0; }
-.prod-name { font-size: 14px; font-weight: 500; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.prod-sku { font-size: 11px; color: #999; font-family: monospace; margin-top: 3px; }
-.toggle { display: flex; gap: 6px; flex-shrink: 0; }
-.btn-ja { width: 44px; height: 36px; border-radius: 10px; border: 1.5px solid #ddd; background: #f5f5f5; font-size: 12px; font-weight: 600; cursor: pointer; color: #555; }
-.btn-nein { width: 44px; height: 36px; border-radius: 10px; border: 1.5px solid #ddd; background: #f5f5f5; font-size: 12px; font-weight: 600; cursor: pointer; color: #555; }
-.btn-ja.active { background: #1d9e75; border-color: #1d9e75; color: white; }
-.btn-nein.active { background: #e24b4a; border-color: #e24b4a; color: white; }
-.bottom-bar { position: fixed; bottom: 60px; left: 0; right: 0; padding: 12px 16px; background: #fff; border-top: 1px solid #e5e5e5; display: flex; gap: 8px; z-index: 900; }
-.btn-primary { flex: 1; background: #111; color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; }
-.btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-.btn-secondary { background: #f5f5f5; color: #111; border: 1.5px solid #ddd; border-radius: 14px; padding: 16px 14px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.phase2 { padding-bottom: 100px; }
-.photo-card { background: #fff; margin-bottom: 10px; }
-.photo-card-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px 10px; border-bottom: 1px solid #f0f0f0; }
-.photo-card-header img { width: 44px; height: 44px; object-fit: cover; border-radius: 10px; }
-.photo-card-title { font-size: 14px; font-weight: 600; line-height: 1.3; }
-.photo-card-sku { font-size: 11px; color: #999; font-family: monospace; margin-top: 2px; }
-.photo-area { margin: 12px 16px; border: 2px dashed #ddd; border-radius: 14px; min-height: 160px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; background: #fafafa; }
-.photo-area img { width: 100%; height: 160px; object-fit: cover; border-radius: 12px; }
-.photo-hint { text-align: center; color: #aaa; font-size: 13px; padding: 20px; }
-.photo-hint-icon { font-size: 32px; margin-bottom: 6px; }
-.photo-status { margin: 0 16px 14px; font-size: 12px; padding: 8px 12px; border-radius: 10px; display: none; }
-.photo-status.analyzing { background: #e8f4ff; color: #185fa5; display: block; }
-.photo-status.done { background: #e6f4ef; color: #1d9e75; display: block; }
-.photo-status.err { background: #fcebeb; color: #a32d2d; display: block; }
-input[type=file] { display: none; }
-.phase3 { padding: 16px 16px 180px; }
-.section-title { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px; }
-.saved-item { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 14px; padding: 12px; margin-bottom: 8px; }
-.saved-item img { width: 52px; height: 52px; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
-.saved-info { flex: 1; min-width: 0; }
-.saved-name { font-size: 13px; font-weight: 500; }
-.saved-sku { font-size: 11px; color: #999; font-family: monospace; }
-.saved-desc { font-size: 11px; color: #555; margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.empty { text-align: center; color: #aaa; font-size: 14px; padding: 40px 20px; }
-.db-actions { display: flex; gap: 8px; margin-bottom: 16px; }
-.db-actions button { flex: 1; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1.5px solid #ddd; background: #fff; }
-.db-actions .export-btn { background: #1d9e75; color: white; border-color: #1d9e75; }
-.db-actions .import-btn { background: #fff; color: #111; }
-/* Modal */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1100; display: flex; align-items: flex-end; justify-content: center; }
-.modal { background: #fff; border-radius: 20px 20px 0 0; padding: 20px 20px calc(80px + env(safe-area-inset-bottom)); width: 100%; max-width: 480px; }
-.modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; text-align: center; }
-.modal p { font-size: 13px; color: #888; text-align: center; margin-bottom: 16px; }
-.modal-close { width: 100%; padding: 14px; background: #f5f5f5; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 12px; }
-#qrCanvas { display: block; margin: 0 auto 12px; border-radius: 12px; }
-.import-area { position: relative; border: 2px dashed #ddd; border-radius: 14px; padding: 24px; text-align: center; cursor: pointer; margin-bottom: 12px; }
-.import-area p { color: #888; font-size: 14px; margin: 0; }
-.import-area input { display: none; }
-.import-success { background: #e6f4ef; color: #1d9e75; border-radius: 10px; padding: 10px 14px; font-size: 13px; text-align: center; display: none; }
-.import-err { background: #fcebeb; color: #a32d2d; border-radius: 10px; padding: 10px 14px; font-size: 13px; text-align: center; display: none; }
-
 </style>
 </head>
 <body>
@@ -223,13 +142,16 @@ input[type=file] { display: none; }
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <button onclick="resetApiKey()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;" title="API Key ändern">🔑</button>
+      <label style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;" title="Datenbank laden">
+        📥<input type="file" accept="*/*" onchange="importDB(this)" style="display:none;">
+      </label>
       <div class="page-pill" id="pagePill">–</div>
     </div>
   </div>
   <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
 
   <div class="content">
-    <div id="dbWarning" class="db-warning" style="display:none">⚠️ Keine Produktdatenbank – bitte zuerst im Tab „📦 Datenbank" Produkte hinzufügen.</div>
+    <div id="dbWarning" class="db-warning" style="display:none">⚠️ Keine Produktdatenbank – tippe auf 📥 DB laden um die Datenbank zu importieren.</div>
 
     <!-- PDF + Dropdown in einer Karte -->
     <div class="pdf-card">
@@ -338,6 +260,7 @@ async function getDropboxToken() {
   dropboxAccessToken = data.access_token;
   return dropboxAccessToken;
 }
+const DB_KEY = 'produkt_db_v2';
 const API_KEY_STORAGE = 'ow_claude_api_key';
 const MAX_FOTOS = 6;
 
@@ -368,14 +291,11 @@ let checkedLieferungen = new Set(); // Indizes bereits abgeschlossener Lieferung
 let extractionDone = false;
 
 // ── DB ──────────────────────────────────────────────────
-const STORAGE_KEY = 'produkt_db_v2';
 function loadDB() {
-  try { db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { db = []; }
+  try { db = JSON.parse(localStorage.getItem(DB_KEY) || '[]'); } catch { db = []; }
   document.getElementById('dbStatus').textContent = db.length > 0 ? db.length + ' Produkte' : 'Keine Datenbank';
   document.getElementById('dbWarning').style.display = db.length > 0 ? 'none' : 'block';
-  return db;
 }
-function saveDB(db) { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
 
 // ── PDF laden ───────────────────────────────────────────
 async function loadPDF() {
@@ -628,53 +548,59 @@ async function runCheck() {
   const lief = lieferungen[currentLieferIdx];
   const seite = lief.seiten[currentSeiteIdx];
 
-  setOverlay('Schein & Produkte werden analysiert…', lief.lieferNr, 1);
-
-  // Schein-Text direkt aus PDF extrahieren (kein API Call nötig)
-  let scheinText = '';
+  // Schritt 1: Schein lesen
+  setOverlay('Schein wird gelesen…', lief.lieferNr, 1);
+  let scheinData;
   try {
-    const page = await pdfDoc.getPage(seite);
-    const tc = await page.getTextContent();
-    scheinText = tc.items.map(i => i.str).join(' ');
-  } catch(e) {}
-
-  // Beide Calls parallel starten
-  const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name} | ${p.analysis?.beschreibung||''}`).join('\n');
-
-  const fotoBlocks = produktFotos.map((src,i) => [
-    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: src.split(',')[1] } },
-    { type: 'text', text: `Foto ${i+1} von ${produktFotos.length}` }
-  ]).flat();
-  fotoBlocks.push({ type: 'text', text: `Erkenne alle Produkte auf allen ${produktFotos.length} Foto${produktFotos.length>1?'s':''}. Zähle zusammen – kein Produkt doppelt. Produktdatenbank:\n\n${dbCtx}\n\nAntworte NUR mit JSON:\n{"erkannt":[{"sku":"...","name":"...","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` });
-
-  // Schein-Call: Text wenn vorhanden, sonst Bild als Fallback
-  const scheinContent = scheinText.length > 50
-    ? [{ type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen mit Produktname und Menge. Text des Scheins:\n\n${scheinText}\n\nAntworte NUR mit JSON ohne Markdown:\n{"positionen":[{"name":"...","menge":1}]}` }]
-    : [
-        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[seite] } },
-        { type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen. Antworte NUR mit JSON:\n{"positionen":[{"name":"...","menge":1}]}` }
-      ];
-
-  let scheinData, produkteData;
-  try {
-    const [scheinRaw, produkteRaw] = await Promise.all([
-      callClaude([{ role: 'user', content: scheinContent }],
-        'Du bist ein Lagerverwaltungssystem. Lies Kommissionierscheine präzise aus. Antworte nur mit validem JSON.', 1000),
-      callClaude([{ role: 'user', content: fotoBlocks }],
-        'Du bist ein Produkterkennungssystem. Antworte nur mit validem JSON.', 1500)
-    ]);
-    scheinData = JSON.parse(scheinRaw.replace(/```json|```/g,'').trim());
-    produkteData = JSON.parse(produkteRaw.replace(/```json|```/g,'').trim());
+    const raw = await callClaude([{ role: 'user', content: [
+      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: pageImages[seite] } },
+      { type: 'text', text: `Lies diesen Kommissionierschein (${lief.lieferNr}). Extrahiere alle Positionen mit Artikelnummer/SKU, Produktname und Menge. Antworte NUR mit JSON ohne Markdown:\n{"positionen":[{"sku":"...","name":"...","menge":1}]}` }
+    ]}],
+    'Du bist ein Lagerverwaltungssystem. Lies Kommissionierscheine präzise aus. Antworte nur mit validem JSON.', 1000);
+    scheinData = JSON.parse(raw.replace(/```json|```/g,'').trim());
   } catch(e) {
     hideOverlay();
-    showPageError('Fehler beim Analysieren: ' + e.message);
+    showPageError('Fehler beim Lesen des Scheins: ' + e.message);
     document.getElementById('btnCheck').disabled = false;
     return;
   }
 
-  // Abgleich
-  setOverlay('Abgleich…', 'Soll-Ist-Vergleich', 2);
-  await new Promise(r => setTimeout(r, 300));
+  // Schritt 2: Produkte erkennen
+  setOverlay('Produkte werden erkannt…', `${produktFotos.length} Foto${produktFotos.length>1?'s':''} werden analysiert`, 2);
+  let produkteData;
+  try {
+    const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name} | ${p.analysis?.beschreibung||''}`).join('\n');
+    const fotoBlocks = produktFotos.map((src,i) => [
+      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: src.split(',')[1] } },
+      { type: 'text', text: `Foto ${i+1} von ${produktFotos.length}` }
+    ]).flat();
+    fotoBlocks.push({ type: 'text', text: `Du hast Zugriff auf unsere Produktdatenbank. Deine Aufgabe: Erkenne welche Produkte auf den Fotos zu sehen sind und ordne sie AUSSCHLIESSLICH Produkten aus der Datenbank zu.
+
+WICHTIG:
+- Verwende NUR SKUs und Namen aus der Datenbank unten
+- Verlass dich NICHT auf dein eigenes Wissen über Produkte
+- Wenn ein Produkt auf dem Foto einem Datenbankeintrag ähnelt, verwende dessen SKU
+- Gleiche visuell ab: Verpackungsfarbe, Form, Logo, Text auf der Verpackung
+- Zähle alle Produkte zusammen, kein Produkt doppelt
+
+PRODUKTDATENBANK:
+${dbCtx}
+
+Antworte NUR mit JSON:
+{"erkannt":[{"sku":"exakte-sku-aus-datenbank","name":"exakter-name-aus-datenbank","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` });
+    const raw = await callClaude([{ role: 'user', content: fotoBlocks }],
+      'Du bist ein Lagerverwaltungssystem. Du ordnest fotografierte Produkte ausschließlich Einträgen aus der bereitgestellten Produktdatenbank zu. Du erfindest keine eigenen Produktnamen oder SKUs. Antworte nur mit validem JSON.', 1500);
+    produkteData = JSON.parse(raw.replace(/```json|```/g,'').trim());
+  } catch(e) {
+    hideOverlay();
+    showPageError('Fehler beim Erkennen der Produkte: ' + e.message);
+    document.getElementById('btnCheck').disabled = false;
+    return;
+  }
+
+  // Schritt 3: Abgleich
+  setOverlay('Abgleich…', 'Soll-Ist-Vergleich', 3);
+  await new Promise(r => setTimeout(r, 400));
   hideOverlay();
 
   const results = doCompare(scheinData.positionen||[], produkteData.erkannt||[]);
@@ -874,7 +800,7 @@ function saveKeyAndStart() {
   loadPDF();
 }
 
-function resetApiKey() { localStorage.removeItem(API_KEY_STORAGE); location.reload(); }
+
 
 // ── Init ────────────────────────────────────────────────
 if (getApiKey()) {
@@ -886,512 +812,34 @@ if (getApiKey()) {
   document.getElementById('screenApiKey').style.display = 'block';
 }
 loadPDF();
-</script>
 
-<!-- Tab Bar -->
-<div class="tab-bar" id="tabBar">
-  <button class="tab-btn active" id="tabCheck" onclick="switchTab('check')">
-    <span class="tab-icon">📋</span>Check
-  </button>
-  <button class="tab-btn" id="tabDb" onclick="switchTab('db')">
-    <span class="tab-icon">📦</span>Datenbank
-  </button>
-</div>
+// ── DB Import ──────────────────────────────────────────
+function saveDB(dbData) { localStorage.setItem(DB_KEY, JSON.stringify(dbData)); }
 
-<!-- Screen: Datenbank -->
-<div id="screenDb">
-<!-- Phase 1: Auswahl -->
-<div id="appPhase1">
-  <div class="header">
-    <h1>Produkt-Datenbank</h1>
-    <p>Welche Produkte sollen aufgenommen werden?</p>
-  </div>
-  <div class="progress-bar"><div class="progress-fill" id="progFill1" style="width:0%"></div></div>
-  <div class="toolbar">
-    <input type="search" id="searchInput" placeholder="Suchen…" oninput="filterList()">
-    <select id="vendorFilter" onchange="filterList()">
-      <option value="">Alle</option>
-      <option value="Organic Workout">OW</option>
-      <option value="Green Organic">GO</option>
-      <option value="OW">OW²</option>
-    </select>
-  </div>
-  <div class="count-bar">
-    <span id="countInfo">0 Produkte</span>
-    <span class="sel-pill" id="selPill">0 ausgewählt</span>
-  </div>
-  <div class="list" id="productList"></div>
-  <div class="bottom-bar">
-    <button class="btn-secondary" onclick="showDBPhase()">Datenbank</button>
-    <button class="btn-primary" id="btn1" disabled onclick="goPhase2()">Weiter → Fotos machen</button>
-  </div>
-</div>
-
-<!-- Phase 2: Fotos -->
-<div id="appPhase2" style="display:none">
-  <div class="header">
-    <h1>Fotos machen</h1>
-    <p id="phase2Info">0 von 0 fotografiert</p>
-  </div>
-  <div class="progress-bar"><div class="progress-fill" id="progFill2" style="width:0%"></div></div>
-  <div class="phase2" id="photoCards"></div>
-  <div class="bottom-bar">
-    <button class="btn-secondary" onclick="goPhase1()">← Zurück</button>
-    <button class="btn-primary" id="btnSave" onclick="saveAll()">Speichern</button>
-  </div>
-</div>
-
-<!-- Phase 3: Datenbank -->
-<div id="appPhase3" style="display:none">
-  <div class="header">
-    <h1>Datenbank</h1>
-    <p id="dbInfo">0 Produkte gespeichert</p>
-  </div>
-  <div class="phase3">
-    <div class="db-actions">
-      <button class="export-btn" onclick="showExportModal()">📤 Exportieren (QR)</button>
-      <button class="import-btn" onclick="showImportModal()">📥 Importieren</button>
-    </div>
-    <div id="dbView"></div>
-  </div>
-  <div class="bottom-bar">
-    <button class="btn-primary" onclick="goPhase1()">+ Weitere Produkte hinzufügen</button>
-  </div>
-</div>
-
-<!-- Export Modal -->
-<div class="modal-overlay" id="exportModal" style="display:none" onclick="closeExport(event)">
-  <div class="modal">
-    <h2>Datenbank exportieren</h2>
-    <p>Scanne diesen QR-Code mit dem neuen Handy, um die Datenbank zu übertragen.</p>
-    <canvas id="qrCanvas" width="220" height="220"></canvas>
-    <p id="qrInfo" style="font-size:11px; color:#aaa;"></p>
-    <button class="modal-close" onclick="document.getElementById('exportModal').style.display='none'">Schließen</button>
-  </div>
-</div>
-
-<!-- Import Modal -->
-<div class="modal-overlay" id="importModal" style="display:none" onclick="closeImport(event)">
-  <div class="modal" onclick="event.stopPropagation()">
-    <h2>Datenbank importieren</h2>
-    <p style="font-size:13px;color:#666;margin-bottom:12px;">JSON-Datei auswählen oder Inhalt einfügen:</p>
-    <div style="margin-bottom:12px;">
-      <label style="display:block;background:#1d9e75;color:white;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:600;cursor:pointer;">
-        📂 Datei auswählen
-        <input type="file" accept="*/*" onchange="handleImportFile(this)" style="display:none;">
-      </label>
-    </div>
-    <p style="font-size:12px;color:#888;text-align:center;margin-bottom:8px;">— oder JSON-Text direkt einfügen —</p>
-    <textarea id="importPasteArea" placeholder='JSON hier einfügen…' style="width:100%;height:100px;border:1.5px solid #ddd;border-radius:10px;padding:10px;font-size:13px;font-family:monospace;resize:none;"></textarea>
-    <button onclick="handleImportPaste()" style="width:100%;background:#111;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:600;margin-top:8px;cursor:pointer;">Importieren</button>
-    <div class="import-success" id="importSuccess" style="margin-top:8px;"></div>
-    <div class="import-err" id="importErr" style="margin-top:8px;"></div>
-    <button class="modal-close" onclick="document.getElementById('importModal').style.display='none'" style="margin-top:8px;">Schließen</button>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
-
-
-const ALL_PRODUCTS = [
-  {id:"gid://shopify/Product/8271134556424",title:"Cookie Dough NomNoms Protein Bites",sku:"SNVB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_d99bfd5c-cc57-44a4-a86b-6881d70d3692.png?v=1779718060"},
-  {id:"gid://shopify/Product/8316068102408",title:"Crunchy Peanut Chocolate NomNoms",sku:"SNSB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Neuebitestitel.jpg?v=1746945735"},
-  {id:"gid://shopify/Product/8413599334664",title:"Creamy Coconut NomNoms Protein Bites",sku:"SNCB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/4_9055495b-26b1-42be-8c82-8841224be009.jpg?v=1746946058"},
-  {id:"gid://shopify/Product/8413612278024",title:"Salted Caramel NomNoms Protein Bites",sku:"SNSC-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/2_a92efa43-27b4-418e-9cf8-866e1e6cebb1.jpg?v=1746945914"},
-  {id:"gid://shopify/Product/8413613785352",title:"Vanilla Blast NomNoms Protein Bites",sku:"SNVV-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/12.jpg?v=1704880240"},
-  {id:"gid://shopify/Product/8516014014728",title:"Lemon Cheesecake NomNoms Protein Bites",sku:"SNLB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_SZ_0cc73371-56df-4886-b191-15f7d61fafa3.png?v=1713531922"},
-  {id:"gid://shopify/Product/8516020306184",title:"Salty Peanut NomNoms Protein Bites",sku:"SNSP-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_2_ddff9217-7c81-4bcb-9e50-4d8c26356eee.jpg?v=1768644338"},
-  {id:"gid://shopify/Product/10470744850696",title:"Strawberry NomNoms Protein Bites",sku:"SNEB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/DesignohneTitel_4.png?v=1755790399"},
-  {id:"gid://shopify/Product/10706037473544",title:"Creamy White Hazelnut NomNoms",sku:"SNBH-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_dbde217d-ae91-43a9-b59b-c8f43dea02ea.jpg?v=1768643741"},
-  {id:"gid://shopify/Product/10743533437192",title:"Coffee Dream NomNoms Protein Bites",sku:"SNKB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Kaffee_66aa888d-50e0-4938-88a9-05899e793541.jpg?v=1770646487"},
-  {id:"gid://shopify/Product/10743536746760",title:"Matcha NomNoms Protein Bites",sku:"SNMB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Matcha_9d56850f-3dce-4ea6-aba1-f841c6f42352.jpg?v=1770646512"},
-  {id:"gid://shopify/Product/8349788635400",title:"Lebkuchen NomNoms Protein Bites",sku:"SNLKB-45-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/5_258b9ca3-e7df-4400-849f-9ead84f6c30f.png?v=1701195299"},
-  {id:"gid://shopify/Product/8121257361672",title:"Bio Schoko-Proteinpulver aus Whey",sku:"WSS-450-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_Schokoprotein.jpg?v=1692176891"},
-  {id:"gid://shopify/Product/8121264210184",title:"Bio Vanille-Proteinpulver aus Whey",sku:"WSV-450-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/PackshotsmitHintergrund_2.png?v=1755092681"},
-  {id:"gid://shopify/Product/8121270993160",title:"Bio Whey Protein Konzentrat - neutral",sku:"WSK-500-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_SZ.png?v=1697895824"},
-  {id:"gid://shopify/Product/8210456117512",title:"Red Berry BEAUTY SHAKE",sku:"WSB-400-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_SZ-8_246a7a7f-48d7-4b61-91e4-5e04b28fe73a.jpg?v=1741616203"},
-  {id:"gid://shopify/Product/8478122737928",title:"Milky Choco BEAUTY SHAKE",sku:"WSSM-400-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_SZ-8_defd5de3-cf7c-4961-ad67-c9cefe425787.jpg?v=1741613993"},
-  {id:"gid://shopify/Product/8214102737160",title:"Collagen Pulver - Rind, neutral",sku:"SPCP-450-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_neutral-Collagen.jpg?v=1692020925"},
-  {id:"gid://shopify/Product/8311409082632",title:"Marine Collagen Pulver - neutral",sku:"SPMC-225-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/mariner_ursprung_collagen_225.png?v=1753097906"},
-  {id:"gid://shopify/Product/8210508054792",title:"Vanille-Collagen Pulver",sku:"SPCV-200-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1_0775ce89-d335-4aab-9707-ae841c9eb049.jpg?v=1771487411"},
-  {id:"gid://shopify/Product/10730211606792",title:"Strawberry Flavour Collagen Pulver",sku:"SPCE-200-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1_973acd63-c9f7-4d8a-9dbb-cfef3447d022.jpg?v=1770040302"},
-  {id:"gid://shopify/Product/8122528694536",title:"LOWER-CARB* BACKMISCHUNG – Brötchen & Brot",sku:"BMLC-350-1",vendor:"OW",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/bestes-low-carb-brot-broetchen.jpg?v=1695127454"},
-  {id:"gid://shopify/Product/8122561331464",title:"Bio Paleo Backmischung",sku:"BMPA-300-1",vendor:"OW",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Brot_Produkt-Titel_SZ_ed970993-b4d1-48e5-a986-617827097740.jpg?v=1719834930"},
-  {id:"gid://shopify/Product/8260201906440",title:"Bio Kernige Lower-Carb* Backmischung",sku:"BMKE-450-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/KernigeBM_SHOP_2.jpg?v=1695127487"},
-  {id:"gid://shopify/Product/8368051257608",title:"HELLE LOWER-CARB* BRÖTCHEN BACKMISCHUNG",sku:"BMLB-350-1",vendor:"OW",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Brot_Produkt-Titel_SZ_1.png?v=1701953582"},
-  {id:"gid://shopify/Product/8438558654728",title:"WRAPS LOWER-CARB* BACKMISCHUNG",sku:"BMWM-175-1",vendor:"OW",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_SZKopie.jpg?v=1706773344"},
-  {id:"gid://shopify/Product/8121262473480",title:"Vegane Bio Backmischung mit Gemüse",sku:"BMV-320-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_SZ.jpg?v=1692015864"},
-  {id:"gid://shopify/Product/8121265291528",title:"LOWER-CARB* SCHOKOKUCHEN BACKMISCHUNG",sku:"SMSK-300-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/lowcarb_schokokuchen_gluteinfrei.jpg?v=1690024628"},
-  {id:"gid://shopify/Product/8121268863240",title:"Vegane Vanille Cookie-Backmischung",sku:"SMKV-250-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1_ee2c24bd-c844-4af7-8f47-bffabd3c04c2.jpg?v=1767797715"},
-  {id:"gid://shopify/Product/8121269092616",title:"Vegane Chocolate-Chip Cookie-Backmischung",sku:"SMKS-250-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1_b7cb5699-4565-4c0f-85fc-c206c15dfc69.jpg?v=1767796881"},
-  {id:"gid://shopify/Product/8307037765896",title:"LOWER-CARB VANILLE EIS",sku:"SNEPV-120-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/titel_low_carb_vanille_ei.jpg?v=1749650582"},
-  {id:"gid://shopify/Product/8307041272072",title:"Creamy Cookie-Dough Eis-Pulver",sku:"SNEPC-150-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/OW_eispulver_cookie_dough_lowcarb_keto.jpg?v=1754731340"},
-  {id:"gid://shopify/Product/8320957677832",title:"LOWER-CARB LEMON-CHEESECAKE EIS",sku:"SNEPL-125-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_Lemon-Cheesecake_new.jpg?v=1693995810"},
-  {id:"gid://shopify/Product/9322274881800",title:"LOWER-CARB SALTED CARAMEL EIS",sku:"SNEPS-120-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/2_6a12cc55-d312-4241-bc86-29f3ef44d731.jpg?v=1718616454"},
-  {id:"gid://shopify/Product/9465255821576",title:"Cookie Dough Protein Crumble",sku:"POCC-200-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/2_4d4cea8a-4472-4803-9f6c-3f1532aa609c.jpg?v=1746021286"},
-  {id:"gid://shopify/Product/9465269715208",title:"Choco Peanut Protein Crumble",sku:"POCS-200-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/3_bb36d114-fca6-4c7c-a7c2-a7a4cf6fb3ce.jpg?v=1726044142"},
-  {id:"gid://shopify/Product/9465274663176",title:"Crispy Vanilla Protein Crumble",sku:"POCV-200-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1_93a304a3-5a4d-476a-938f-59699d854795.jpg?v=1726044757"},
-  {id:"gid://shopify/Product/10715584889096",title:"Protein-Crumble Creamy Coconut",sku:"POCO-200-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1_7fd73949-8525-4310-8304-4cc59dc53ce3.jpg?v=1769445892"},
-  {id:"gid://shopify/Product/10715585544456",title:"Protein-Crumble Salted Caramel",sku:"POSCC-200-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1_e7bfd7c7-bc6e-4023-8e47-da06f3c59560.jpg?v=1769442287"},
-  {id:"gid://shopify/Product/8313925239048",title:"Bio Protein Crispies",sku:"POPC-220-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_CRISPIES.jpg?v=1692882391"},
-  {id:"gid://shopify/Product/10610543034632",title:"Bio Schokodrops – lower-carb* & vegan",sku:"SNSDD-190-1-TEMP",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/schokodrops.jpg?v=1771849355"},
-  {id:"gid://shopify/Product/9647487025416",title:"Bio Körner-Mix",sku:"OW-KM-175",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_SZ-5_a4854b6a-1fdb-4368-880c-f2844826da85.jpg?v=1740048459"},
-  {id:"gid://shopify/Product/10454409052424",title:"Cookie Dough Creme",sku:"NBCD-190-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Cookie_dough_6dd4eb15-9192-4a6d-8598-bf3d7c5d84cb.png?v=1754731340"},
-  {id:"gid://shopify/Product/8260209672456",title:"Cremige Bio Double Choc Nusscreme",sku:"NBDC-190-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Produkt-Titel_DoubleChoc_Schokolade.jpg?v=1692168183"},
-  {id:"gid://shopify/Product/8121256837384",title:"Bio Premium Whey Protein (Green Organic)",sku:"GOWP-500-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Whey_900.png?v=1753192841"},
-  {id:"gid://shopify/Product/8121255624968",title:"Bio Premium Mandelmehl 400 g",sku:"GOMA-400-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Mandelmehl1er.png?v=1753195046"},
-  {id:"gid://shopify/Product/8121256083720",title:"Bio Premium Kokosmehl 1000 g",sku:"GOKM-1000-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Kokosmehl1er.png?v=1753195288"},
-  {id:"gid://shopify/Product/8121256280328",title:"Bio Premium Flohsamenschalen 500 g",sku:"GOFL-500-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Flohsamenschalen1er.png?v=1753194784"},
-  {id:"gid://shopify/Product/8121256608008",title:"Bio Premium Erythrit 500 g",sku:"GOER-500-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1_Erythrit.png?v=1753699831"},
-  {id:"gid://shopify/Product/8121271288072",title:"Bio Premium Puder-Erythrit 190 g",sku:"GOER-190-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_b7a584f9-27a0-4170-b1c3-8be1ee75ba65.jpg?v=1768816204"},
-  {id:"gid://shopify/Product/8121258475784",title:"Bio Premium Leinmehl 750 g",sku:"GOLM-750-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/8_51baf9e0-6fbb-463a-91c1-21b09a4cd553.jpg?v=1712566673"},
-  {id:"gid://shopify/Product/8279436394760",title:"Bio glutenfreie Großblatt Haferflocken 450 g",sku:"GOHG-450-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/2_d9617935-7e28-4e93-af19-a230e39111e6.jpg?v=1712566502"},
-  {id:"gid://shopify/Product/8487371964680",title:"Bio Premium Eiklar-Pulver",sku:"GOEI-175-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Eiklar450.png?v=1753193350"},
-  {id:"gid://shopify/Product/8487370785032",title:"Bio Premium MCT-Öl-Pulver 400 g",sku:"GOMC-400-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er.png?v=1755095547"},
-  {id:"gid://shopify/Product/8487369638152",title:"Bio Premium Inulin 200 g",sku:"GOIN-200-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/4_4cff8678-c5ca-4d6a-a823-69fa0afc5f1f.jpg?v=1712150382"},
-  {id:"gid://shopify/Product/8542904516872",title:"Bio Chiasamen 500 g",sku:"GOCH-450-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/2_129e6458-80fd-47c9-bbd9-583add4093d5.jpg?v=1715864250"},
-  {id:"gid://shopify/Product/8542910775560",title:"Bio Spirulina & Chlorella 200 g",sku:"GOCS-200-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/GreenOrganic-Packshots_1c2359be-7b5d-438a-9ea9-2f18151dcf68.jpg?v=1722848404"},
-  {id:"gid://shopify/Product/8542911398152",title:"Bio Tapiokastärke 900 g",sku:"GOTA-900-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Tapiokastaerke1er.png?v=1753194614"},
-  {id:"gid://shopify/Product/10712009408776",title:"Mönchsfruchtpulver 80 g",sku:"GOMF-80-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/450.jpg?v=1768827806"},
-  {id:"gid://shopify/Product/9535432753416",title:"Bio Bourbon-Vanille",sku:"GOVA-50-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1_vanille_25_g.png?v=1753179321"},
-  {id:"gid://shopify/Product/9535459164424",title:"Bio Xylit 500 g",sku:"GOXY-500-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/Xylit.png?v=1753193128"},
-  {id:"gid://shopify/Product/9535379931400",title:"Natron 900 g",sku:"GONA-900-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/GreenOrganic-Packshots_ca0feeb6-96f4-451b-9ebd-c3fb71b5040d.jpg?v=1730380082"},
-  {id:"gid://shopify/Product/9535417450760",title:"Bio Ceylon-Zimt 200 g",sku:"GOZM-250-1",vendor:"Green Organic",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_14eec90f-3e93-4ff1-93f1-a3df09242d51.jpg?v=1773830789"},
-  {id:"gid://shopify/Product/10757066457352",title:"Creatin Monohydrat 250 g",sku:"SPCR-250-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/2_aa5979ea-4ab9-4a7c-aa22-4d93da1410e0.jpg?v=1772027071"},
-  {id:"gid://shopify/Product/10756984078600",title:"Magnesium Bisglycinat Kapseln 120 Stk",sku:"SUMG-120-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/2_e0638f43-316c-4a79-818b-100b6bb5a926.jpg?v=1772031909"},
-  {id:"gid://shopify/Product/10768553378056",title:"Bio Chocolate & Fruits Crunch Banana",sku:"SEDB-100-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_3_4665b353-9649-4a20-910b-161d57ac1f59.jpg?v=1773043258"},
-  {id:"gid://shopify/Product/10768603644168",title:"Bio Chocolate & Fruits Crunch Strawberry",sku:"SEDE-100-1",vendor:"Organic Workout",img:"https://cdn.shopify.com/s/files/1/0682/7835/4184/files/1er_3.jpg?v=1772460090"}
-];
-
-let choices = {};
-let filtered = [...ALL_PRODUCTS];
-let photoData = {};
-
-
-function filterList() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const v = document.getElementById('vendorFilter').value;
-  filtered = ALL_PRODUCTS.filter(p =>
-    (!q || p.title.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)) &&
-    (!v || p.vendor === v)
-  );
-  renderList();
-}
-
-function renderList() {
-  const yesCount = Object.values(choices).filter(v => v === true).length;
-  document.getElementById('countInfo').textContent = filtered.length + ' Produkte';
-  document.getElementById('selPill').textContent = yesCount + ' ausgewählt';
-  document.getElementById('btn1').disabled = yesCount === 0;
-  document.getElementById('progFill1').style.width = (ALL_PRODUCTS.length ? Math.round(yesCount / ALL_PRODUCTS.length * 100) : 0) + '%';
-  document.getElementById('productList').innerHTML = filtered.map(p => {
-    const c = choices[p.id];
-    return `<div class="product-row ${c === true ? 'selected' : ''}">
-      <img class="thumb" src="${p.img}" onerror="this.style.display='none'" alt="">
-      <div class="prod-info">
-        <div class="prod-name">${p.title}</div>
-        <div class="prod-sku">${p.sku}</div>
-      </div>
-      <div class="toggle">
-        <button class="btn-ja ${c === true ? 'active' : ''}" onclick="setChoice('${p.id}',true)">Ja</button>
-        <button class="btn-nein ${c === false ? 'active' : ''}" onclick="setChoice('${p.id}',false)">Nein</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function setChoice(id, val) {
-  choices[id] = choices[id] === val ? undefined : val;
-  if (choices[id] === undefined) delete choices[id];
-  renderList();
-}
-
-function goPhase1() {
-  document.getElementById('appPhase2').style.display = 'none';
-  document.getElementById('appPhase3').style.display = 'none';
-  document.getElementById('appPhase1').style.display = 'block';
-  renderList();
-}
-
-function goPhase2() {
-  const yesIds = Object.entries(choices).filter(([,v]) => v === true).map(([k]) => k);
-  document.getElementById('appPhase1').style.display = 'none';
-  document.getElementById('appPhase2').style.display = 'block';
-  document.getElementById('phase2Info').textContent = '0 von ' + yesIds.length + ' fotografiert';
-  document.getElementById('photoCards').innerHTML = yesIds.map(id => {
-    const p = ALL_PRODUCTS.find(x => x.id === id);
-    return `<div class="photo-card">
-      <div class="photo-card-header">
-        <img src="${p.img}" onerror="this.style.display='none'" alt="">
-        <div><div class="photo-card-title">${p.title}</div><div class="photo-card-sku">${p.sku}</div></div>
-      </div>
-      <input type="file" accept="image/*" capture="environment" id="file-${id}" onchange="handlePhoto('${id}',this)">
-      <div class="photo-area" id="area-${id}" onclick="document.getElementById('file-${id}').click()">
-        <div class="photo-hint"><div class="photo-hint-icon">📷</div>Tippen zum Fotografieren</div>
-      </div>
-      <div class="photo-status" id="pst-${id}"></div>
-    </div>`;
-  }).join('');
-  updateP2Progress(yesIds);
-}
-
-async function handlePhoto(id, input) {
+function importDB(input) {
   const file = input.files[0];
   if (!file) return;
-  const p = ALL_PRODUCTS.find(x => x.id === id);
   const reader = new FileReader();
-  reader.onload = async ev => {
-    const dataUrl = ev.target.result;
-    const b64 = dataUrl.split(',')[1];
-    document.getElementById('area-' + id).innerHTML = `<img src="${dataUrl}" alt="">`;
-    const st = document.getElementById('pst-' + id);
-    st.className = 'photo-status analyzing';
-    st.textContent = '⏳ Wird analysiert…';
+  reader.onload = function(ev) {
     try {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 600,
-          system: 'Produkterkennungssystem. Antworte NUR mit JSON ohne Markdown: {"beschreibung":"...","farben":"...","besonderheiten":"..."}',
-          messages: [{ role: 'user', content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
-            { type: 'text', text: `Produkt: ${p.title}, SKU: ${p.sku}. Beschreibe Verpackung, Farben und Merkmale für Lagererkennung.` }
-          ]}]
-        })
-      });
-      const data = await resp.json();
-      let analysis = {};
-      try { analysis = JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim()); }
-      catch { analysis = { beschreibung: data.content[0].text.substring(0,200) }; }
-      photoData[id] = { analysis };
-      st.className = 'photo-status done';
-      st.textContent = '✓ ' + (analysis.beschreibung || 'Analysiert');
+      let data = JSON.parse(ev.target.result);
+      // Kompaktformat umwandeln
+      if (data.length > 0 && data[0].e) {
+        data = data.map(function(p) {
+          return { shopifyId: p.id, ean: p.e, name: p.n, vendor: p.v, shopifyImg: p.i, analysis: { beschreibung: p.d }, addedAt: p.a };
+        });
+      }
+      saveDB(data);
+      loadDB();
+      alert('✅ ' + data.length + ' Produkte importiert!');
     } catch(e) {
-      st.className = 'photo-status err';
-      st.textContent = '✗ Fehler: ' + e.message;
+      alert('❌ Fehler: ' + e.message);
     }
-    updateP2Progress(Object.entries(choices).filter(([,v]) => v === true).map(([k]) => k));
+    input.value = '';
   };
-  reader.readAsDataURL(file);
-}
-
-function updateP2Progress(yesIds) {
-  const done = yesIds.filter(id => photoData[id]).length;
-  document.getElementById('phase2Info').textContent = done + ' von ' + yesIds.length + ' fotografiert';
-  document.getElementById('progFill2').style.width = (yesIds.length ? Math.round(done / yesIds.length * 100) : 0) + '%';
-}
-
-function saveAll() {
-  const db = loadDB();
-  Object.entries(choices).filter(([,v]) => v === true).forEach(([id]) => {
-    const p = ALL_PRODUCTS.find(x => x.id === id);
-    const pd = photoData[id];
-    const entry = { shopifyId: id, ean: p.sku, name: p.title, vendor: p.vendor, shopifyImg: p.img, analysis: pd ? pd.analysis : { beschreibung: p.title }, addedAt: new Date().toISOString() };
-    const idx = db.findIndex(e => e.shopifyId === id);
-    if (idx >= 0) db[idx] = entry; else db.push(entry);
-  });
-  saveDB(db);
-  showDBPhase();
-}
-
-function showDBPhase() {
-  document.getElementById('appPhase1').style.display = 'none';
-  document.getElementById('appPhase2').style.display = 'none';
-  document.getElementById('appPhase3').style.display = 'block';
-  renderDB();
-}
-
-function renderDB() {
-  const db = loadDB();
-  document.getElementById('dbInfo').textContent = db.length + ' Produkte gespeichert';
-  if (db.length === 0) {
-    document.getElementById('dbView').innerHTML = '<div class="empty">Noch keine Produkte gespeichert.<br>Füge Produkte über die Auswahl hinzu.</div>';
-    return;
-  }
-  document.getElementById('dbView').innerHTML =
-    '<div class="section-title">Gespeicherte Produkte</div>' +
-    db.map(p => `<div class="saved-item">
-      <img src="${p.shopifyImg}" onerror="this.style.opacity='0.3'" alt="">
-      <div class="saved-info">
-        <div class="saved-name">${p.name}</div>
-        <div class="saved-sku">${p.ean}</div>
-        <div class="saved-desc">${p.analysis?.beschreibung || ''}</div>
-      </div>
-      <div style="font-size:18px">✅</div>
-    </div>
-<script>
-`).join('');
-}
-
-// ── Export ──────────────────────────────────────────────
-function showExportModal() {
-  const db = loadDB();
-  if (db.length === 0) { alert('Keine Daten zum Exportieren.'); return; }
-
-  // Kompakt: nur die nötigsten Felder
-  const exportData = db.map(p => ({
-    id: p.shopifyId, e: p.ean, n: p.name, v: p.vendor,
-    i: p.shopifyImg, d: p.analysis?.beschreibung || '', a: p.addedAt
-  }));
-  const json = JSON.stringify(exportData);
-  const encoded = btoa(unescape(encodeURIComponent(json)));
-
-  document.getElementById('exportModal').style.display = 'flex';
-  const canvas = document.getElementById('qrCanvas');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, 220, 220);
-
-  // Daten als JSON-Datei-Download anbieten (QR für kleine DBs, Download immer)
-  const blob = new Blob([json.replace(/"id"/g,'"shopifyId"').replace(/"e"/g,'"ean"').replace(/"n"/g,'"name"').replace(/"v"/g,'"vendor"').replace(/"i"/g,'"shopifyImg"').replace(/"d"/g,'"beschreibung"').replace(/"a"/g,'"addedAt"')], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-
-  const kb = Math.round(encoded.length / 1024 * 10) / 10;
-  document.getElementById('qrInfo').textContent = db.length + ' Produkte · ' + kb + ' KB';
-
-  if (typeof QRCode !== 'undefined' && encoded.length < 2900) {
-    try {
-      canvas.width = 220; canvas.height = 220;
-      new QRCode(canvas, { text: 'owdb:' + encoded, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
-      document.getElementById('qrInfo').textContent += ' · Als QR scannbar';
-    } catch(e) { drawDownloadFallback(canvas, url, db.length); }
-  } else {
-    drawDownloadFallback(canvas, url, db.length);
-  }
-
-  // Export-Button – Teilen auf iOS, Download auf Desktop
-  const filename = 'produkt-db-' + new Date().toISOString().slice(0,10) + '.json';
-  let dlBtn = document.getElementById('exportDownloadLink');
-  if (!dlBtn) {
-    dlBtn = document.createElement('button');
-    dlBtn.id = 'exportDownloadLink';
-    dlBtn.style.cssText = 'display:block;width:100%;margin:12px 0 4px;padding:12px;background:#1d9e75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;';
-    document.getElementById('qrCanvas').after(dlBtn);
-  }
-  dlBtn.textContent = '📤 Datenbank teilen / herunterladen';
-  dlBtn.onclick = async () => {
-    const file = new File([blob], filename, { type: 'application/json' });
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      // iOS Share Sheet – AirDrop, Dateien, etc.
-      try {
-        await navigator.share({ files: [file], title: 'Produktdatenbank' });
-      } catch(e) { if (e.name !== 'AbortError') alert('Teilen fehlgeschlagen: ' + e.message); }
-    } else {
-      // Desktop Fallback: normaler Download
-      const a = document.createElement('a');
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click();
-      setTimeout(() => document.body.removeChild(a), 1000);
-    }
-  };
-}
-
-function drawDownloadFallback(canvas, url, count) {
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#f5f5f5';
-  ctx.fillRect(0, 0, 220, 220);
-  ctx.fillStyle = '#111';
-  ctx.font = '14px -apple-system, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('DB zu groß für QR.', 110, 100);
-  ctx.fillText('Bitte JSON herunterladen.', 110, 122);
-  document.getElementById('qrInfo').textContent = count + ' Produkte · Bitte JSON-Download nutzen';
-}
-
-function closeExport(e) {
-  if (e.target.id === 'exportModal') document.getElementById('exportModal').style.display = 'none';
-}
-
-// ── Import ──────────────────────────────────────────────
-function showImportModal() {
-  document.getElementById('importSuccess').style.display = 'none';
-  document.getElementById('importErr').style.display = 'none';
-  document.getElementById('importModal').style.display = 'flex';
-}
-
-function closeImport(e) {
-  if (e.target.id === 'importModal') document.getElementById('importModal').style.display = 'none';
-}
-
-function handleImportFile(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => { processImportData(ev.target.result); };
   reader.readAsText(file);
 }
 
-function handleImportPaste() {
-  const text = document.getElementById('importPasteArea').value.trim();
-  if (!text) { 
-    document.getElementById('importErr').style.display = 'block';
-    document.getElementById('importErr').textContent = '✗ Bitte JSON-Text einfügen.';
-    return;
-  }
-  processImportData(text);
-}
-
-function processImportData(jsonText) {
-  try {
-    let data = JSON.parse(jsonText);
-    if (data[0] && data[0].e) {
-      data = data.map(p => ({ shopifyId: p.id, ean: p.e, name: p.n, vendor: p.v, shopifyImg: p.i, analysis: { beschreibung: p.d }, addedAt: p.a }));
-    }
-    const db = loadDB();
-    let added = 0, updated = 0;
-    data.forEach(p => {
-      const idx = db.findIndex(e => e.shopifyId === p.shopifyId || e.ean === p.ean);
-      if (idx >= 0) { db[idx] = p; updated++; } else { db.push(p); added++; }
-    });
-    saveDB(db);
-    loadDB(); // Warnung aktualisieren
-    const s = document.getElementById('importSuccess');
-    s.style.display = 'block';
-    s.textContent = '✓ ' + added + ' neu importiert, ' + updated + ' aktualisiert.';
-    document.getElementById('importErr').style.display = 'none';
-    setTimeout(() => { document.getElementById('importModal').style.display = 'none'; renderDB(); }, 1500);
-  } catch(e) {
-    const err = document.getElementById('importErr');
-    err.style.display = 'block';
-    err.textContent = '✗ Ungültige Datei: ' + e.message;
-  }
-}
-
-// ── Init ────────────────────────────────────────────────
-// Beim Start: wenn schon DB vorhanden, direkt zur DB
-// DB window.onload entfernt – wird über Tab-Navigation gesteuert
-
-
-// ── Tab Navigation ──────────────────────────────────────
-// Simpler switchTab that just shows/hides
-function switchTab(tab) {
-  const isCheck = tab === 'check';
-  document.getElementById('tabCheck').classList.toggle('active', isCheck);
-  document.getElementById('tabDb').classList.toggle('active', !isCheck);
-
-  document.getElementById('screenDb').style.display = isCheck ? 'none' : 'block';
-
-  // For check tab: restore last visible check screen
-  if (isCheck) {
-    // loadDB neu aufrufen damit Warnung und Status aktuell sind
-    loadDB();
-    // Show screenCheck if no other check screen is visible
-    const checkScreens = ['screenCheck','screenResult','screenFinal'];
-    const anyVisible = checkScreens.some(id => {
-      const el = document.getElementById(id);
-      return el && el.style.display !== 'none';
-    });
-    if (!anyVisible) document.getElementById('screenCheck').style.display = 'block';
-  } else {
-    // Hide all check screens when showing db
-    ['screenCheck','screenResult','screenFinal'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el._hiddenByTab = el.style.display !== 'none';
-      if (el) el.style.display = 'none';
-    });
-    renderDB();
-  }
-}
 </script>
 </body>
+</html>

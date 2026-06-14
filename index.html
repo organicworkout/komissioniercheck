@@ -149,7 +149,7 @@ input[type=file] { display: none; }
   <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
 
   <div class="content">
-    <div id="dbWarning" class="db-warning" style="display:none">⚠️ Keine Produktdatenbank – tippe auf 📥 DB laden um die Datenbank zu importieren.</div>
+    <div id="dbWarning" class="db-warning" style="display:none" onclick="debugDB()">⚠️ Keine Produktdatenbank – tippe auf 📥 DB laden um die Datenbank zu importieren.<br><small style="opacity:0.7">Tippe hier für Details</small></div>
 
     <!-- PDF + Dropdown in einer Karte -->
     <div class="pdf-card">
@@ -365,6 +365,15 @@ async function renderPageToCache(pageNum) {
 
 async function showPageCanvas(pageNum) {
   const container = document.getElementById('pdfPageContainer');
+  if (!pageImages[pageNum]) {
+    container.innerHTML = `<div class="pdf-page-loading"><div class="pdf-page-loading-icon">⏳</div>Seite ${pageNum} wird geladen…</div>`;
+    if (pdfDoc) {
+      await renderPageToCache(pageNum);
+    } else {
+      container.innerHTML = `<div class="pdf-error">❌ PDF nicht geladen. Bitte 🔄 drücken.</div>`;
+      return;
+    }
+  }
   container.innerHTML = '';
   const img = new Image();
   await new Promise(res => {
@@ -778,7 +787,8 @@ function resetAll() {
   if (nextIdx === -1) nextIdx = currentLieferIdx; // alle gecheckt
 
   currentLieferIdx = nextIdx;
-  currentSeiteIdx = 0; allResults = []; produktFotos = []; pageImages = {};
+  currentSeiteIdx = 0; allResults = []; produktFotos = [];
+  // pageImages NICHT leeren – die PDF-Seiten sind noch gecacht!
 
   renderDropdown(nextIdx);
   renderFotoGrid();
@@ -787,7 +797,17 @@ function resetAll() {
   document.getElementById('screenCheck').style.display='block';
   window.scrollTo(0,0);
   const seite = lieferungen[currentLieferIdx]?.seiten[0];
-  if (seite) { showPageCanvas(seite); updatePill(); checkReady(); }
+  if (seite) {
+    if (pageImages[seite]) {
+      showPageCanvas(seite);
+    } else {
+      // Seite noch nicht im Cache (sollte nicht vorkommen) – PDF neu laden
+      loadPDF();
+      return;
+    }
+    updatePill();
+    checkReady();
+  }
 }
 
 // ── Helpers ─────────────────────────────────────────────
@@ -841,7 +861,22 @@ if (getApiKey()) {
 }
 loadPDF();
 
-// ── DB Import ──────────────────────────────────────────
+function debugDB() {
+  const raw = localStorage.getItem('produkt_db_v2');
+  if (!raw) {
+    alert('localStorage: produkt_db_v2 = LEER\n\nDie Datenbank wurde noch nie auf diesem Gerät/Browser gespeichert.\n→ Bitte zuerst datenbank.html öffnen, Produkte fotografieren und Speichern tippen.');
+  } else {
+    try {
+      const data = JSON.parse(raw);
+      const mitFoto = data.filter(p => p.eigenFoto).length;
+      const kb = Math.round(raw.length / 1024);
+      alert(`DB gefunden aber nicht geladen?\nEinträge: ${data.length}\nDavon mit eigenem Foto: ${mitFoto}\nGröße: ${kb} KB\nErster Eintrag: ${data[0]?.name || '?'}\n\n→ Seite neu laden (🔄) versuchen.`);
+    } catch(e) {
+      alert('localStorage vorhanden aber ungültiges JSON: ' + e.message);
+    }
+  }
+}
+
 function saveDB(dbData) { localStorage.setItem(DB_KEY, JSON.stringify(dbData)); }
 
 function showImportDialog() { document.getElementById('importDialog').style.display = 'flex'; }

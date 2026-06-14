@@ -414,9 +414,15 @@ function showExportModal() {
   if (db.length === 0) { alert('Keine Daten zum Exportieren.'); return; }
 
   // Kompakt: nur die nötigsten Felder
+  // Export mit vollständigen Feldnamen - kein fehleranfälliges Umwandeln
   const exportData = db.map(p => ({
-    id: p.shopifyId, e: p.ean, n: p.name, v: p.vendor,
-    i: p.shopifyImg, d: p.analysis?.beschreibung || '', a: p.addedAt
+    shopifyId: p.shopifyId,
+    ean: p.ean,
+    name: p.name,
+    vendor: p.vendor,
+    shopifyImg: p.shopifyImg,
+    analysis: { beschreibung: p.analysis?.beschreibung || '' },
+    addedAt: p.addedAt
   }));
   const json = JSON.stringify(exportData);
   const encoded = btoa(unescape(encodeURIComponent(json)));
@@ -427,7 +433,7 @@ function showExportModal() {
   ctx.clearRect(0, 0, 220, 220);
 
   // Daten als JSON-Datei-Download anbieten (QR für kleine DBs, Download immer)
-  const blob = new Blob([json.replace(/"id"/g,'"shopifyId"').replace(/"e"/g,'"ean"').replace(/"n"/g,'"name"').replace(/"v"/g,'"vendor"').replace(/"i"/g,'"shopifyImg"').replace(/"d"/g,'"beschreibung"').replace(/"a"/g,'"addedAt"')], {type:'application/json'});
+  const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
 
   const kb = Math.round(encoded.length / 1024 * 10) / 10;
@@ -510,8 +516,9 @@ function handleImportPaste() {
 function processImportData(jsonText) {
   try {
     let data = JSON.parse(jsonText);
-    if (data[0] && data[0].e) {
-      data = data.map(p => ({ shopifyId: p.id, ean: p.e, name: p.n, vendor: p.v, shopifyImg: p.i, analysis: { beschreibung: p.d }, addedAt: p.a }));
+    // Kurzformat (alt) umwandeln
+    if (data.length > 0 && data[0].e !== undefined) {
+      data = data.map(p => ({ shopifyId: p.id || p.shopifyId, ean: p.e || p.ean, name: p.n || p.name, vendor: p.v || p.vendor, shopifyImg: p.i || p.shopifyImg, analysis: { beschreibung: p.d || (p.analysis && p.analysis.beschreibung) || '' }, addedAt: p.a || p.addedAt }));
     }
     const db = loadDB();
     let added = 0, updated = 0;

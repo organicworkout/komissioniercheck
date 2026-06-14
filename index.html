@@ -142,9 +142,7 @@ input[type=file] { display: none; }
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <button onclick="resetApiKey()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;" title="API Key ändern">🔑</button>
-      <label style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;" title="Datenbank laden">
-        📥<input type="file" accept="*/*" onchange="importDB(this)" style="display:none;">
-      </label>
+      <button onclick="showImportDialog()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;" title="Datenbank laden">📥</button>
       <div class="page-pill" id="pagePill">–</div>
     </div>
   </div>
@@ -569,27 +567,38 @@ async function runCheck() {
   setOverlay('Produkte werden erkannt…', `${produktFotos.length} Foto${produktFotos.length>1?'s':''} werden analysiert`, 2);
   let produkteData;
   try {
-    const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name} | ${p.analysis?.beschreibung||''}`).join('\n');
+    // Aufnahmefotos (was fotografiert wurde)
     const fotoBlocks = produktFotos.map((src,i) => [
       { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: src.split(',')[1] } },
-      { type: 'text', text: `Foto ${i+1} von ${produktFotos.length}` }
+      { type: 'text', text: `Aufnahme ${i+1} von ${produktFotos.length}` }
     ]).flat();
-    fotoBlocks.push({ type: 'text', text: `Du hast Zugriff auf unsere Produktdatenbank. Deine Aufgabe: Erkenne welche Produkte auf den Fotos zu sehen sind und ordne sie AUSSCHLIESSLICH Produkten aus der Datenbank zu.
 
-WICHTIG:
-- Verwende NUR SKUs und Namen aus der Datenbank unten
-- Verlass dich NICHT auf dein eigenes Wissen über Produkte
-- Wenn ein Produkt auf dem Foto einem Datenbankeintrag ähnelt, verwende dessen SKU
-- Gleiche visuell ab: Verpackungsfarbe, Form, Logo, Text auf der Verpackung
-- Zähle alle Produkte zusammen, kein Produkt doppelt
+    // Datenbankfotos als Referenz hinzufügen (max 20 um Token zu sparen)
+    const dbMitFoto = db.filter(p => p.shopifyImg || p.analysis?.foto);
+    const dbBlocks = [];
+    dbMitFoto.slice(0, 20).forEach(p => {
+      const fotoSrc = p.analysis?.foto || p.shopifyImg;
+      if (fotoSrc && fotoSrc.startsWith('data:')) {
+        dbBlocks.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: fotoSrc.split(',')[1] } });
+      } else if (fotoSrc && fotoSrc.startsWith('http')) {
+        dbBlocks.push({ type: 'image', source: { type: 'url', url: fotoSrc } });
+      }
+      dbBlocks.push({ type: 'text', text: `Referenzbild → SKU: ${p.ean} | ${p.name}` });
+    });
 
-PRODUKTDATENBANK:
-${dbCtx}
+    // Alle Produkte als Text-Liste
+    const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name}`).join('\n');
 
-Antworte NUR mit JSON:
-{"erkannt":[{"sku":"exakte-sku-aus-datenbank","name":"exakter-name-aus-datenbank","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` });
-    const raw = await callClaude([{ role: 'user', content: fotoBlocks }],
-      'Du bist ein Lagerverwaltungssystem. Du ordnest fotografierte Produkte ausschließlich Einträgen aus der bereitgestellten Produktdatenbank zu. Du erfindest keine eigenen Produktnamen oder SKUs. Antworte nur mit validem JSON.', 1500);
+    const allBlocks = [
+      { type: 'text', text: 'AUFNAHMEN (diese Produkte wurden fotografiert):' },
+      ...fotoBlocks,
+      { type: 'text', text: '\nREFERENZBILDER aus unserer Produktdatenbank (gleiche die Aufnahmen damit ab):' },
+      ...dbBlocks,
+      { type: 'text', text: `\nALLE PRODUKTE in der Datenbank (verwende NUR diese SKUs):\n${dbCtx}\n\nOrdne jedes fotografierte Produkt einem Referenzbild/Datenbankeintrag zu. Antworte NUR mit JSON:\n{"erkannt":[{"sku":"exakte-sku","name":"exakter-name","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` }
+    ];
+    fotoBlocks.push({ type: 'text', text: '' }); // dummy
+    const raw = await callClaude([{ role: 'user', content: allBlocks }],
+      'Du bist ein Lagerverwaltungssystem. Du hast Referenzbilder unserer Produkte. Vergleiche die Aufnahmen visuell mit den Referenzbildern und ordne sie der passenden SKU zu. Erfinde keine eigenen SKUs. Antworte nur mit validem JSON.', 1500);
     produkteData = JSON.parse(raw.replace(/```json|```/g,'').trim());
   } catch(e) {
     hideOverlay();
@@ -821,25 +830,28 @@ function importDB(input) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(ev) {
-    try {
-      let data = JSON.parse(ev.target.result);
-      // Kompaktformat umwandeln
-      if (data.length > 0 && data[0].e) {
-        data = data.map(function(p) {
-          return { shopifyId: p.id, ean: p.e, name: p.n, vendor: p.v, shopifyImg: p.i, analysis: { beschreibung: p.d }, addedAt: p.a };
-        });
-      }
-      saveDB(data);
-      loadDB();
-      alert('✅ ' + data.length + ' Produkte importiert!');
-    } catch(e) {
-      alert('❌ Fehler: ' + e.message);
-    }
+    processImportText(ev.target.result);
     input.value = '';
   };
   reader.readAsText(file);
 }
 
 </script>
+
+<!-- Import Dialog -->
+<div id="importDialog" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:600;display:flex;align-items:flex-end;justify-content:center;" onclick="this.style.display='none'">
+  <div onclick="event.stopPropagation()" style="background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;padding-bottom:calc(20px + env(safe-area-inset-bottom));">
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:12px;">📥 Datenbank importieren</h2>
+    <label style="display:block;background:#1d9e75;color:white;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:12px;">
+      📂 Datei auswählen
+      <input type="file" accept="*/*" onchange="importDB(this);document.getElementById('importDialog').style.display='none';" style="display:none;">
+    </label>
+    <p style="font-size:12px;color:#888;text-align:center;margin-bottom:8px;">— oder JSON-Text einfügen —</p>
+    <textarea id="importPasteField" placeholder="JSON hier einfügen…" style="width:100%;height:80px;border:1.5px solid #ddd;border-radius:10px;padding:10px;font-size:13px;font-family:monospace;resize:none;"></textarea>
+    <button onclick="importFromPaste()" style="width:100%;background:#111;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:600;margin-top:8px;cursor:pointer;">Importieren</button>
+    <button onclick="document.getElementById('importDialog').style.display='none'" style="width:100%;background:none;border:none;color:#888;padding:12px;font-size:14px;cursor:pointer;margin-top:4px;">Abbrechen</button>
+  </div>
+</div>
+
 </body>
 </html>

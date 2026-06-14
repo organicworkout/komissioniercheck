@@ -573,32 +573,51 @@ async function runCheck() {
       { type: 'text', text: `Aufnahme ${i+1} von ${produktFotos.length}` }
     ]).flat();
 
-    // Datenbankfotos als Referenz hinzufügen (max 20 um Token zu sparen)
-    const dbMitFoto = db.filter(p => p.shopifyImg || p.analysis?.foto);
+    // Datenbankfotos als Referenz: eigenFoto (selbst aufgenommenes Foto) bevorzugen
+    // Nur Produkte mit eigenem Foto – diese werden DIREKT VISUELL verglichen
+    const dbMitEigenFoto = db.filter(p => p.eigenFoto);
+    const dbMitNurShopify = db.filter(p => !p.eigenFoto);
+
     const dbBlocks = [];
-    dbMitFoto.slice(0, 20).forEach(p => {
-      const fotoSrc = p.analysis?.foto || p.shopifyImg;
-      if (fotoSrc && fotoSrc.startsWith('data:')) {
-        dbBlocks.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: fotoSrc.split(',')[1] } });
-      } else if (fotoSrc && fotoSrc.startsWith('http')) {
-        dbBlocks.push({ type: 'image', source: { type: 'url', url: fotoSrc } });
-      }
-      dbBlocks.push({ type: 'text', text: `Referenzbild → SKU: ${p.ean} | ${p.name}` });
+
+    // 1. Eigene Fotos (zuverlässigste Referenz, base64)
+    dbMitEigenFoto.forEach(p => {
+      dbBlocks.push({
+        type: 'image',
+        source: { type: 'base64', media_type: 'image/jpeg', data: p.eigenFoto }
+      });
+      dbBlocks.push({ type: 'text', text: `REFERENZ → SKU: ${p.ean} | ${p.name}` });
     });
 
-    // Alle Produkte als Text-Liste
-    const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name}`).join('\n');
+    // 2. Shopify-Bilder für Produkte ohne eigenes Foto (URL, bis max 15 zusätzliche)
+    dbMitNurShopify.slice(0, 15).forEach(p => {
+      if (p.shopifyImg && p.shopifyImg.startsWith('http')) {
+        dbBlocks.push({ type: 'image', source: { type: 'url', url: p.shopifyImg } });
+        dbBlocks.push({ type: 'text', text: `REFERENZ → SKU: ${p.ean} | ${p.name}` });
+      }
+    });
+
+    // Alle Produkte als Text-Kontext (für SKU-Zuordnung)
+    const dbCtx = db.map(p => `SKU: ${p.ean} | Name: ${p.name}${p.analysis?.beschreibung ? ' | Beschreibung: ' + p.analysis.beschreibung : ''}`).join('\n');
 
     const allBlocks = [
-      { type: 'text', text: 'AUFNAHMEN (diese Produkte wurden fotografiert):' },
+      { type: 'text', text: '=== AUFNAHMEN (was heute kommissioniert wurde) ===\nAnalysiere diese Fotos und erkenne, welche Produkte abgebildet sind und wie viele Einheiten jeweils vorhanden sind.' },
       ...fotoBlocks,
-      { type: 'text', text: '\nREFERENZBILDER aus unserer Produktdatenbank (gleiche die Aufnahmen damit ab):' },
+      { type: 'text', text: '\n=== REFERENZBILDER unserer Produktdatenbank ===\nVergleiche die Aufnahmen VISUELL mit diesen Referenzbildern. Achte auf: Verpackungsdesign, Farben, Aufdrucke, Produktgröße, Form.' },
       ...dbBlocks,
-      { type: 'text', text: `\nALLE PRODUKTE in der Datenbank (verwende NUR diese SKUs):\n${dbCtx}\n\nOrdne jedes fotografierte Produkt einem Referenzbild/Datenbankeintrag zu. Antworte NUR mit JSON:\n{"erkannt":[{"sku":"exakte-sku","name":"exakter-name","menge":1,"konfidenz":"hoch|mittel|niedrig"}]}` }
+      { type: 'text', text: `\n=== ALLE PRODUKTE in unserer Datenbank ===\n${dbCtx}\n\n` +
+        `=== AUFGABE ===\n` +
+        `1. Vergleiche die AUFNAHMEN visuell mit den REFERENZBILDERN.\n` +
+        `2. Ordne jedes erkannte Produkt der passenden SKU zu (nur SKUs aus der Datenbank).\n` +
+        `3. Zähle die Anzahl der sichtbaren Einheiten jedes Produkts.\n` +
+        `4. Verwende NUR SKUs, die in der Datenbank existieren. Erfinde keine.\n` +
+        `5. Bei Unsicherheit: niedrige Konfidenz angeben, aber trotzdem beste Schätzung liefern.\n\n` +
+        `Antworte NUR mit JSON:\n{"erkannt":[{"sku":"exakte-sku-aus-db","name":"exakter-name","menge":1,"konfidenz":"hoch|mittel|niedrig","grund":"kurze Begründung"}]}`
+      }
     ];
-    fotoBlocks.push({ type: 'text', text: '' }); // dummy
+
     const raw = await callClaude([{ role: 'user', content: allBlocks }],
-      'Du bist ein Lagerverwaltungssystem. Du hast Referenzbilder unserer Produkte. Vergleiche die Aufnahmen visuell mit den Referenzbildern und ordne sie der passenden SKU zu. Erfinde keine eigenen SKUs. Antworte nur mit validem JSON.', 1500);
+      'Du bist ein Lagerverwaltungssystem für Organic Workout. Du erhältst Aufnahmefotos von kommissionierten Produkten und Referenzbilder aus der Produktdatenbank. Deine Aufgabe: vergleiche die Aufnahmen visuell mit den Referenzbildern und ordne jeden sichtbaren Artikel der korrekten SKU zu. Achte besonders auf Verpackungsdesign, Farbe und Beschriftung. Zähle die Einheiten pro Produkt. Erfinde keine SKUs. Antworte nur mit validem JSON.', 1500);
     produkteData = JSON.parse(raw.replace(/```json|```/g,'').trim());
   } catch(e) {
     hideOverlay();
@@ -825,6 +844,8 @@ loadPDF();
 // ── DB Import ──────────────────────────────────────────
 function saveDB(dbData) { localStorage.setItem(DB_KEY, JSON.stringify(dbData)); }
 
+function showImportDialog() { document.getElementById('importDialog').style.display = 'flex'; }
+
 function importDB(input) {
   const file = input.files[0];
   if (!file) return;
@@ -834,6 +855,46 @@ function importDB(input) {
     input.value = '';
   };
   reader.readAsText(file);
+}
+
+function importFromPaste() {
+  const text = document.getElementById('importPasteField').value.trim();
+  if (!text) return;
+  processImportText(text);
+}
+
+function processImportText(jsonText) {
+  try {
+    let data = JSON.parse(jsonText);
+    // Kurzformat (alt) umwandeln
+    if (data.length > 0 && data[0].e !== undefined) {
+      data = data.map(p => ({
+        shopifyId: p.id || p.shopifyId,
+        ean: p.e || p.ean,
+        name: p.n || p.name,
+        vendor: p.v || p.vendor,
+        shopifyImg: p.i || p.shopifyImg,
+        eigenFoto: p.eigenFoto || null,  // selbst aufgenommenes Foto erhalten
+        analysis: { beschreibung: p.d || (p.analysis && p.analysis.beschreibung) || '' },
+        addedAt: p.a || p.addedAt
+      }));
+    }
+    // eigenFoto-Feld sicherstellen bei allen Einträgen
+    data = data.map(p => ({ ...p, eigenFoto: p.eigenFoto || null }));
+
+    const existing = JSON.parse(localStorage.getItem(DB_KEY) || '[]');
+    let added = 0, updated = 0;
+    data.forEach(p => {
+      const idx = existing.findIndex(e => e.shopifyId === p.shopifyId || e.ean === p.ean);
+      if (idx >= 0) { existing[idx] = p; updated++; } else { existing.push(p); added++; }
+    });
+    saveDB(existing);
+    loadDB();
+    document.getElementById('importDialog').style.display = 'none';
+    alert(`✓ ${added} neu importiert, ${updated} aktualisiert.\n\n${existing.length} Produkte in der Datenbank.`);
+  } catch(e) {
+    alert('Fehler beim Import: ' + e.message);
+  }
 }
 
 </script>

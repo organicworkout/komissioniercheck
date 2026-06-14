@@ -363,7 +363,7 @@ async function handlePhoto(id, input) {
       let analysis = {};
       try { analysis = JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim()); }
       catch { analysis = { beschreibung: data.content[0].text.substring(0,200) }; }
-      photoData[id] = { analysis };
+      photoData[id] = { analysis, b64 };  // b64 für späteren visuellen Vergleich speichern
       st.className = 'photo-status done';
       st.textContent = '✓ ' + (analysis.beschreibung || 'Analysiert');
     } catch(e) {
@@ -386,7 +386,17 @@ function saveAll() {
   Object.entries(choices).filter(([,v]) => v === true).forEach(([id]) => {
     const p = ALL_PRODUCTS.find(x => x.id === id);
     const pd = photoData[id];
-    const entry = { shopifyId: id, ean: p.sku, name: p.title, vendor: p.vendor, shopifyImg: p.img, analysis: pd ? pd.analysis : { beschreibung: p.title }, addedAt: new Date().toISOString() };
+    const entry = {
+      shopifyId: id,
+      ean: p.sku,
+      name: p.title,
+      vendor: p.vendor,
+      shopifyImg: p.img,
+      // Selbst aufgenommenes Foto als base64 speichern – wird für den visuellen Vergleich benötigt
+      eigenFoto: pd?.b64 || null,
+      analysis: pd ? pd.analysis : { beschreibung: p.title },
+      addedAt: new Date().toISOString()
+    };
     const idx = db.findIndex(e => e.shopifyId === id);
     if (idx >= 0) db[idx] = entry; else db.push(entry);
   });
@@ -411,11 +421,11 @@ function renderDB() {
   document.getElementById('dbView').innerHTML =
     '<div class="section-title">Gespeicherte Produkte</div>' +
     db.map(p => `<div class="saved-item">
-      <img src="${p.shopifyImg}" onerror="this.style.opacity='0.3'" alt="">
+      <img src="${p.eigenFoto ? 'data:image/jpeg;base64,' + p.eigenFoto : p.shopifyImg}" onerror="this.style.opacity='0.3'" alt="" style="${p.eigenFoto ? 'border:2px solid #1d9e75;' : ''}">
       <div class="saved-info">
         <div class="saved-name">${p.name}</div>
         <div class="saved-sku">${p.ean}</div>
-        <div class="saved-desc">${p.analysis?.beschreibung || ''}</div>
+        <div class="saved-desc">${p.eigenFoto ? '📷 Eigenes Foto ✓ · ' : '⚠️ Kein eigenes Foto · '}${p.analysis?.beschreibung || ''}</div>
       </div>
       <div style="font-size:18px">✅</div>
     </div>`).join('');
@@ -434,6 +444,7 @@ function showExportModal() {
     name: p.name,
     vendor: p.vendor,
     shopifyImg: p.shopifyImg,
+    eigenFoto: p.eigenFoto || null,  // selbst aufgenommenes Foto für visuellen Vergleich
     analysis: { beschreibung: p.analysis?.beschreibung || '' },
     addedAt: p.addedAt
   }));

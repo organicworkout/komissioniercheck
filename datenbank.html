@@ -332,7 +332,46 @@ let filtered = [...ALL_PRODUCTS];
 let photoData = {};
 
 function loadDB() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; } }
-function saveDB(db) { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+function saveDB(db) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  } catch(e) {
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      // localStorage voll – Fotos komprimieren (nur Thumbnail speichern)
+      alert('⚠️ Speicher fast voll! Fotos werden auf Thumbnail-Größe reduziert und erneut versucht.');
+      const compressed = db.map(p => ({
+        ...p,
+        eigenFoto: p.eigenFoto ? compressB64(p.eigenFoto) : null
+      }));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(compressed));
+        // Auch im RAM aktuell halten
+        db.forEach((p, i) => { p.eigenFoto = compressed[i].eigenFoto; });
+      } catch(e2) {
+        alert('❌ Speicher komplett voll – Fotos können nicht gespeichert werden. Bitte Browser-Cache leeren.');
+      }
+    } else {
+      alert('❌ Speicherfehler: ' + e.message);
+    }
+  }
+}
+
+function compressB64(b64) {
+  // Bild auf max 200x200px skalieren für Thumbnail
+  try {
+    const img = new Image();
+    img.src = 'data:image/jpeg;base64,' + b64;
+    const canvas = document.createElement('canvas');
+    const MAX = 200;
+    const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+    canvas.width = Math.round(img.width * ratio);
+    canvas.height = Math.round(img.height * ratio);
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+  } catch(e) {
+    return null; // Komprimierung fehlgeschlagen
+  }
+}
 
 function filterList() {
   const q = document.getElementById('searchInput').value.toLowerCase();
@@ -410,63 +449,81 @@ async function handlePhoto(id, input) {
   const file = input.files[0];
   if (!file) return;
   const p = ALL_PRODUCTS.find(x => x.id === id);
-  const reader = new FileReader();
-  reader.onload = async ev => {
-    const dataUrl = ev.target.result;
-    const b64 = dataUrl.split(',')[1];
-    document.getElementById('area-' + id).innerHTML = `<img src="${dataUrl}" alt="">`;
 
-    // ✅ b64 SOFORT speichern — unabhängig davon ob die Analyse klappt
-    if (!photoData[id]) photoData[id] = {};
-    photoData[id].b64 = b64;
-    updateP2Progress(Object.entries(choices).filter(([,v]) => v === true).map(([k]) => k));
+  // Foto vorab auf max 800px komprimieren (Handy-Fotos sind oft 4000x3000px = 6MB base64)
+  const b64 = await resizeImage(file, 800, 0.82);
 
-    const st = document.getElementById('pst-' + id);
+  document.getElementById('area-' + id).innerHTML = `<img src="data:image/jpeg;base64,${b64}" alt="">`;
 
-    // API Key aus localStorage (von index.html gesetzt) oder Fallback
-    const apiKey = localStorage.getItem('ow_claude_api_key') || '';
-    if (!apiKey) {
-      st.className = 'photo-status done';
-      st.textContent = '📷 Foto gespeichert (kein API Key – Analyse übersprungen)';
-      return;
-    }
+  // ✅ b64 SOFORT speichern — unabhängig davon ob die Analyse klappt
+  if (!photoData[id]) photoData[id] = {};
+  photoData[id].b64 = b64;
+  updateP2Progress(Object.entries(choices).filter(([,v]) => v === true).map(([k]) => k));
 
-    st.className = 'photo-status analyzing';
-    st.textContent = '⏳ Wird analysiert…';
-    try {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5', max_tokens: 400,
-          system: 'Produkterkennungssystem. Antworte NUR mit JSON ohne Markdown: {"beschreibung":"...","farben":"...","besonderheiten":"..."}',
-          messages: [{ role: 'user', content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
-            { type: 'text', text: `Produkt: ${p.title}, SKU: ${p.sku}. Beschreibe Verpackung, Farben und Merkmale kurz für Lagererkennung.` }
-          ]}]
-        })
-      });
-      const data = await resp.json();
-      let analysis = {};
-      try { analysis = JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim()); }
-      catch { analysis = { beschreibung: data.content?.[0]?.text?.substring(0,200) || p.title }; }
-      photoData[id].analysis = analysis;
-      st.className = 'photo-status done';
-      st.textContent = '✓ ' + (analysis.beschreibung || 'Analysiert');
-    } catch(e) {
-      // Analyse fehlgeschlagen — aber Foto ist bereits gespeichert (s.o.)
-      photoData[id].analysis = { beschreibung: p.title };
-      st.className = 'photo-status done';
-      st.textContent = '📷 Foto gespeichert (Analyse-Fehler: ' + e.message + ')';
-    }
-    updateP2Progress(Object.entries(choices).filter(([,v]) => v === true).map(([k]) => k));
-  };
-  reader.readAsDataURL(file);
+  const st = document.getElementById('pst-' + id);
+
+  // API Key aus localStorage (von index.html gesetzt) oder Fallback
+  const apiKey = localStorage.getItem('ow_claude_api_key') || '';
+  if (!apiKey) {
+    st.className = 'photo-status done';
+    st.textContent = '📷 Foto gespeichert (kein API Key – Analyse übersprungen)';
+    return;
+  }
+
+  st.className = 'photo-status analyzing';
+  st.textContent = '⏳ Wird analysiert…';
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5', max_tokens: 400,
+        system: 'Produkterkennungssystem. Antworte NUR mit JSON ohne Markdown: {"beschreibung":"...","farben":"...","besonderheiten":"..."}',
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
+          { type: 'text', text: `Produkt: ${p.title}, SKU: ${p.sku}. Beschreibe Verpackung, Farben und Merkmale kurz für Lagererkennung.` }
+        ]}]
+      })
+    });
+    const data = await resp.json();
+    let analysis = {};
+    try { analysis = JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim()); }
+    catch { analysis = { beschreibung: data.content?.[0]?.text?.substring(0,200) || p.title }; }
+    photoData[id].analysis = analysis;
+    st.className = 'photo-status done';
+    st.textContent = '✓ ' + (analysis.beschreibung || 'Analysiert');
+  } catch(e) {
+    photoData[id].analysis = { beschreibung: p.title };
+    st.className = 'photo-status done';
+    st.textContent = '📷 Foto gespeichert (Analyse-Fehler: ' + e.message + ')';
+  }
+  updateP2Progress(Object.entries(choices).filter(([,v]) => v === true).map(([k]) => k));
+}
+
+// Bild auf maxSize px skalieren und als base64 zurückgeben
+function resizeImage(file, maxSize, quality) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(maxSize / img.width, maxSize / img.height, 1);
+        const w = Math.round(img.width * ratio);
+        const h = Math.round(img.height * ratio);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 function updateP2Progress(yesIds) {
@@ -478,9 +535,12 @@ function updateP2Progress(yesIds) {
 function saveAll() {
   const db = loadDB();
   let savedCount = 0;
+  let mitFoto = 0, ohneFoto = 0;
   Object.entries(choices).filter(([,v]) => v === true).forEach(([id]) => {
     const p = ALL_PRODUCTS.find(x => x.id === id);
     const pd = photoData[id];
+    const hasFoto = !!(pd?.b64);
+    if (hasFoto) mitFoto++; else ohneFoto++;
     const entry = {
       shopifyId: id,
       ean: p.sku,
@@ -496,10 +556,10 @@ function saveAll() {
     savedCount++;
   });
   saveDB(db);
-  const ohneEigenFoto = Object.entries(choices).filter(([,v])=>v===true).filter(([id])=>!photoData[id]?.b64).length;
-  if (ohneEigenFoto > 0) {
-    alert(`⚠️ ${ohneEigenFoto} Produkt(e) ohne Foto gespeichert.\nBitte diese Artikel nochmals fotografieren für zuverlässigen Abgleich.`);
-  }
+
+  // Kurze Bestätigung was gespeichert wurde
+  const msg = `✅ ${savedCount} Produkt(e) gespeichert.\n📷 Mit eigenem Foto: ${mitFoto}\n⚠️ Ohne Foto: ${ohneFoto}`;
+  alert(msg);
   showDBPhase();
 }
 

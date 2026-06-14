@@ -538,26 +538,6 @@ function handleImportFile(input) {
   reader.onload = ev => { processImportData(ev.target.result); input.value = ''; };
   reader.readAsText(file);
 }
-      const db = loadDB();
-      let added = 0, updated = 0;
-      data.forEach(p => {
-        const idx = db.findIndex(e => e.shopifyId === p.shopifyId || e.ean === p.ean);
-        if (idx >= 0) { db[idx] = p; updated++; } else { db.push(p); added++; }
-      });
-      saveDB(db);
-      const s = document.getElementById('importSuccess');
-      s.style.display = 'block';
-      s.textContent = '✓ ' + added + ' neu importiert, ' + updated + ' aktualisiert.';
-      document.getElementById('importErr').style.display = 'none';
-      setTimeout(() => { document.getElementById('importModal').style.display = 'none'; renderDB(); }, 1500);
-    } catch(e) {
-      const err = document.getElementById('importErr');
-      err.style.display = 'block';
-      err.textContent = '✗ Ungültige Datei: ' + e.message;
-    }
-  };
-  reader.readAsText(file);
-}
 
 // ── Init ────────────────────────────────────────────────
 // Beim Start: wenn schon DB vorhanden, direkt zur DB

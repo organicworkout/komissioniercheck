@@ -343,32 +343,54 @@ async function handlePhoto(id, input) {
     const dataUrl = ev.target.result;
     const b64 = dataUrl.split(',')[1];
     document.getElementById('area-' + id).innerHTML = `<img src="${dataUrl}" alt="">`;
+
+    // ✅ b64 SOFORT speichern — unabhängig davon ob die Analyse klappt
+    if (!photoData[id]) photoData[id] = {};
+    photoData[id].b64 = b64;
+    updateP2Progress(Object.entries(choices).filter(([,v]) => v === true).map(([k]) => k));
+
     const st = document.getElementById('pst-' + id);
+
+    // API Key aus localStorage (von index.html gesetzt) oder Fallback
+    const apiKey = localStorage.getItem('ow_claude_api_key') || '';
+    if (!apiKey) {
+      st.className = 'photo-status done';
+      st.textContent = '📷 Foto gespeichert (kein API Key – Analyse übersprungen)';
+      return;
+    }
+
     st.className = 'photo-status analyzing';
     st.textContent = '⏳ Wird analysiert…';
     try {
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 600,
+          model: 'claude-haiku-4-5', max_tokens: 400,
           system: 'Produkterkennungssystem. Antworte NUR mit JSON ohne Markdown: {"beschreibung":"...","farben":"...","besonderheiten":"..."}',
           messages: [{ role: 'user', content: [
             { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
-            { type: 'text', text: `Produkt: ${p.title}, SKU: ${p.sku}. Beschreibe Verpackung, Farben und Merkmale für Lagererkennung.` }
+            { type: 'text', text: `Produkt: ${p.title}, SKU: ${p.sku}. Beschreibe Verpackung, Farben und Merkmale kurz für Lagererkennung.` }
           ]}]
         })
       });
       const data = await resp.json();
       let analysis = {};
       try { analysis = JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim()); }
-      catch { analysis = { beschreibung: data.content[0].text.substring(0,200) }; }
-      photoData[id] = { analysis, b64 };  // b64 für späteren visuellen Vergleich speichern
+      catch { analysis = { beschreibung: data.content?.[0]?.text?.substring(0,200) || p.title }; }
+      photoData[id].analysis = analysis;
       st.className = 'photo-status done';
       st.textContent = '✓ ' + (analysis.beschreibung || 'Analysiert');
     } catch(e) {
-      st.className = 'photo-status err';
-      st.textContent = '✗ Fehler: ' + e.message;
+      // Analyse fehlgeschlagen — aber Foto ist bereits gespeichert (s.o.)
+      photoData[id].analysis = { beschreibung: p.title };
+      st.className = 'photo-status done';
+      st.textContent = '📷 Foto gespeichert (Analyse-Fehler: ' + e.message + ')';
     }
     updateP2Progress(Object.entries(choices).filter(([,v]) => v === true).map(([k]) => k));
   };
@@ -383,6 +405,7 @@ function updateP2Progress(yesIds) {
 
 function saveAll() {
   const db = loadDB();
+  let savedCount = 0;
   Object.entries(choices).filter(([,v]) => v === true).forEach(([id]) => {
     const p = ALL_PRODUCTS.find(x => x.id === id);
     const pd = photoData[id];
@@ -392,15 +415,19 @@ function saveAll() {
       name: p.title,
       vendor: p.vendor,
       shopifyImg: p.img,
-      // Selbst aufgenommenes Foto als base64 speichern – wird für den visuellen Vergleich benötigt
       eigenFoto: pd?.b64 || null,
-      analysis: pd ? pd.analysis : { beschreibung: p.title },
+      analysis: pd?.analysis || { beschreibung: p.title },
       addedAt: new Date().toISOString()
     };
     const idx = db.findIndex(e => e.shopifyId === id);
     if (idx >= 0) db[idx] = entry; else db.push(entry);
+    savedCount++;
   });
   saveDB(db);
+  const ohneEigenFoto = Object.entries(choices).filter(([,v])=>v===true).filter(([id])=>!photoData[id]?.b64).length;
+  if (ohneEigenFoto > 0) {
+    alert(`⚠️ ${ohneEigenFoto} Produkt(e) ohne Foto gespeichert.\nBitte diese Artikel nochmals fotografieren für zuverlässigen Abgleich.`);
+  }
   showDBPhase();
 }
 
